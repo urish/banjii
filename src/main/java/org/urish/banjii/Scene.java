@@ -1,5 +1,7 @@
 package org.urish.banjii;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import com.ardor3d.bounding.BoundingBox;
@@ -9,16 +11,25 @@ import com.ardor3d.image.Texture;
 import com.ardor3d.input.Key;
 import com.ardor3d.input.logical.InputTrigger;
 import com.ardor3d.input.logical.KeyPressedCondition;
+import com.ardor3d.input.logical.MouseMovedCondition;
 import com.ardor3d.input.logical.TriggerAction;
 import com.ardor3d.input.logical.TwoInputStates;
+import com.ardor3d.intersection.BoundingPickResults;
+import com.ardor3d.intersection.PickData;
+import com.ardor3d.intersection.PickingUtil;
+import com.ardor3d.math.ColorRGBA;
+import com.ardor3d.math.Ray3;
+import com.ardor3d.math.Vector2;
 import com.ardor3d.math.Vector3;
 import com.ardor3d.renderer.pass.RenderPass;
 import com.ardor3d.renderer.queue.RenderBucketType;
 import com.ardor3d.renderer.state.MaterialState;
 import com.ardor3d.renderer.state.MaterialState.ColorMaterial;
+import com.ardor3d.renderer.state.MaterialState.MaterialFace;
 import com.ardor3d.renderer.state.TextureState;
 import com.ardor3d.scenegraph.Node;
 import com.ardor3d.scenegraph.Spatial;
+import com.ardor3d.scenegraph.hint.CullHint;
 import com.ardor3d.scenegraph.hint.LightCombineMode;
 import com.ardor3d.scenegraph.shape.Box;
 import com.ardor3d.scenegraph.shape.Capsule;
@@ -36,6 +47,14 @@ public class Scene extends ExampleBase {
 
 	double counter = 0;
 	int frames = 0;
+
+	private BoundingPickResults _pickResults;
+	private BasicText _text;
+
+	private final List<Spatial> players = new ArrayList<Spatial>();
+	private MaterialState playerMaterial;
+	private MaterialState playerHighlightMaterial;
+	
 
 	@Override
 	protected void updateExample(final ReadOnlyTimer timer) {
@@ -109,12 +128,16 @@ public class Scene extends ExampleBase {
 	private Spatial createPlayer(String name) {
 		Node player = new Node(name);
 
-		Spatial body = new Capsule("Body", 5, 5, 5, 4, 16);
-		Spatial head = new Sphere("Head", 16, 16, 3);
+		Capsule body = new Capsule("Body", 5, 5, 5, 4, 16);
+		Sphere head = new Sphere("Head", 16, 16, 3);
 		head.setScale(2);
 		head.setTranslation(0, 17, 0);
+		body.updateModelBound();
+		head.updateModelBound();
 		player.attachChild(head);
 		player.attachChild(body);
+		player.setRenderState(playerMaterial);
+		players.add(player);
 
 		return player;
 	}
@@ -127,25 +150,85 @@ public class Scene extends ExampleBase {
 	private Node createObjects() {
 		final Node objects = new Node("objects");
 
-		Spatial player = createPlayer("player1");
+		playerMaterial = new MaterialState();
+		playerMaterial.setDiffuse(MaterialFace.FrontAndBack, ColorRGBA.WHITE);
+		playerHighlightMaterial = new MaterialState();
+		playerHighlightMaterial.setDiffuse(MaterialFace.FrontAndBack, ColorRGBA.YELLOW);
+
+		Spatial player = createPlayer("Player 1");
 		objects.attachChild(player);
 
-		player = createPlayer("player2");
+		player = createPlayer("Player 2");
 		player.setTranslation(0, 0, 18);
 		objects.attachChild(player);
-		
-		TextureState ts = new TextureState();
+
+		TextureState floorTexture = new TextureState();
 		Texture t0 = TextureManager.load("images/ardor3d_white_256.jpg",
 				Texture.MinificationFilter.BilinearNearestMipMap, true);
 		t0.setWrap(Texture.WrapMode.Repeat);
-		ts.setTexture(t0);
+		floorTexture.setTexture(t0);
 
 		Box box = new Box("Floor", new Vector3(-50, -1, -50), new Vector3(50, 1, 50));
 		box.setTranslation(new Vector3(0, -15, 0));
-		box.setRenderState(ts);
+		box.setRenderState(floorTexture);
 		box.setModelBound(new BoundingBox());
 		objects.attachChild(box);
 
+		// Set up a reusable pick results
+		_pickResults = new BoundingPickResults();
+		_pickResults.setCheckDistance(true);
+
+		// Set up our pick label
+		_text = BasicText.createDefaultTextLabel("", "pick");
+		_text.setTranslation(10, 10, 0);
+		_text.getSceneHints().setCullHint(CullHint.Always);
+		objects.attachChild(_text);
+
 		return objects;
+	}
+
+	@Override
+	protected void registerInputTriggers() {
+		super.registerInputTriggers();
+		
+		_logicalLayer.registerTrigger(new InputTrigger(new MouseMovedCondition(), new TriggerAction() {
+			public void perform(final Canvas source, final TwoInputStates inputStates, final double tpf) {
+				// Put together a pick ray
+				final Vector2 pos = Vector2.fetchTempInstance().set(inputStates.getCurrent().getMouseState().getX(),
+						inputStates.getCurrent().getMouseState().getY());
+				final Ray3 pickRay = Ray3.fetchTempInstance();
+				_canvas.getCanvasRenderer().getCamera().getPickRay(pos, false, pickRay);
+				Vector2.releaseTempInstance(pos);
+
+				// Do the pick
+				_pickResults.clear();
+				PickingUtil.findPick(_root, pickRay, _pickResults);
+				Ray3.releaseTempInstance(pickRay);
+
+				String text = "";
+				_text.getSceneHints().setCullHint(CullHint.Never);
+				
+				Spatial highlightPlayer = null;
+				for (int i = 0; i < _pickResults.getNumber(); i++) {
+					final PickData pick = _pickResults.getPickData(i);
+					if (pick.getTarget() instanceof Spatial) {
+						Spatial pickParent = ((Spatial) pick.getTarget()).getParent();
+						if (players.contains(pickParent)) {
+							highlightPlayer = pickParent;
+							text = pickParent.getName();
+							break;
+						}
+					}
+				}
+				for (Spatial player: players) {
+					if (player.equals(highlightPlayer)) {
+						player.setRenderState(playerHighlightMaterial);
+					} else {
+						player.setRenderState(playerMaterial);						
+					}
+				}
+				_text.setText(text);
+			}
+		}));
 	}
 }
