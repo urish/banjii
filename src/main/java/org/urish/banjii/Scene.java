@@ -20,6 +20,7 @@ import com.ardor3d.intersection.BoundingPickResults;
 import com.ardor3d.intersection.PickData;
 import com.ardor3d.intersection.PickingUtil;
 import com.ardor3d.math.ColorRGBA;
+import com.ardor3d.math.Matrix3;
 import com.ardor3d.math.Ray3;
 import com.ardor3d.math.Vector2;
 import com.ardor3d.math.Vector3;
@@ -55,6 +56,8 @@ public class Scene extends ExampleBase {
 	private final List<Spatial> players = new ArrayList<Spatial>();
 	private MaterialState playerMaterial;
 	private MaterialState playerHighlightMaterial;
+
+	private TextureState playerHeadTexture;
 
 	@Override
 	protected void initExample() {
@@ -121,11 +124,16 @@ public class Scene extends ExampleBase {
 		Capsule body = new Capsule("Body", 5, 5, 5, 0.35, 1.5);
 		body.setTranslation(0, 0.75, 0);
 		body.updateModelBound();
-		Sphere head = new Sphere("Head", 16, 16, 0.4);
-		head.setTranslation(0, 2, 0);
+		Sphere head = new Sphere("Head", 16, 16, 0.35);
+	    Matrix3 rotation = new Matrix3();
+	    rotation.fromAngles(Math.PI / 2, Math.PI, 0);
+		head.setTranslation(0, 2.25, 0);
+		head.setRotation(rotation);
+		head.setScale(0.8, 1, 1.5);
 		head.updateModelBound();
-		player.attachChild(head);
+		head.setRenderState(playerHeadTexture);
 		player.attachChild(body);
+		player.attachChild(head);
 		player.setRenderState(playerMaterial);
 		players.add(player);
 
@@ -144,6 +152,11 @@ public class Scene extends ExampleBase {
 		playerMaterial.setDiffuse(MaterialFace.FrontAndBack, ColorRGBA.WHITE);
 		playerHighlightMaterial = new MaterialState();
 		playerHighlightMaterial.setDiffuse(MaterialFace.FrontAndBack, ColorRGBA.YELLOW);
+		
+		playerHeadTexture = new TextureState();
+		Texture t0 = TextureManager.load("textures/head.jpg", Texture.MinificationFilter.BilinearNearestMipMap, false);
+		t0.setWrap(Texture.WrapMode.Clamp);
+		playerHeadTexture.setTexture(t0);
 
 		Spatial player = createPlayer("Player 1");
 		objects.attachChild(player);
@@ -153,7 +166,7 @@ public class Scene extends ExampleBase {
 		objects.attachChild(player);
 
 		TextureState floorTexture = new TextureState();
-		Texture t0 = TextureManager.load("textures/floor.jpg", Texture.MinificationFilter.BilinearNearestMipMap, true);
+		t0 = TextureManager.load("textures/floor.jpg", Texture.MinificationFilter.BilinearNearestMipMap, true);
 		t0.setWrap(Texture.WrapMode.Repeat);
 		floorTexture.setTexture(t0);
 
