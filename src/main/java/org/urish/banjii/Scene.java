@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.urish.banjii.api.CameraListener;
+
 import com.ardor3d.bounding.BoundingBox;
 import com.ardor3d.example.ExampleBase;
 import com.ardor3d.framework.Canvas;
@@ -38,9 +40,11 @@ import com.ardor3d.ui.text.BasicText;
 import com.ardor3d.util.ReadOnlyTimer;
 import com.ardor3d.util.TextureManager;
 
-public class Scene extends ExampleBase {
+public class Scene extends ExampleBase implements CameraListener {
 	/** The Constant logger. */
 	private static final Logger logger = Logger.getLogger(Scene.class.getName());
+
+	public static Scene instance;
 
 	/** Text fields used to present info about the example. */
 	private final BasicText _exampleInfo[] = new BasicText[8];
@@ -54,7 +58,6 @@ public class Scene extends ExampleBase {
 	private final List<Spatial> players = new ArrayList<Spatial>();
 	private MaterialState playerMaterial;
 	private MaterialState playerHighlightMaterial;
-	
 
 	@Override
 	protected void updateExample(final ReadOnlyTimer timer) {
@@ -70,6 +73,8 @@ public class Scene extends ExampleBase {
 
 	@Override
 	protected void initExample() {
+		instance = this;
+
 		_canvas.setTitle("Banjii Viewer");
 		_canvas.getCanvasRenderer().getCamera().setLocation(new Vector3(5, 5, 5));
 		_canvas.getCanvasRenderer().getCamera().lookAt(new Vector3(0, 0, 0), Vector3.UNIT_Y);
@@ -163,8 +168,7 @@ public class Scene extends ExampleBase {
 		objects.attachChild(player);
 
 		TextureState floorTexture = new TextureState();
-		Texture t0 = TextureManager.load("textures/floor.jpg",
-				Texture.MinificationFilter.BilinearNearestMipMap, true);
+		Texture t0 = TextureManager.load("textures/floor.jpg", Texture.MinificationFilter.BilinearNearestMipMap, true);
 		t0.setWrap(Texture.WrapMode.Repeat);
 		floorTexture.setTexture(t0);
 
@@ -190,7 +194,7 @@ public class Scene extends ExampleBase {
 	@Override
 	protected void registerInputTriggers() {
 		super.registerInputTriggers();
-		
+
 		_logicalLayer.registerTrigger(new InputTrigger(new MouseMovedCondition(), new TriggerAction() {
 			public void perform(final Canvas source, final TwoInputStates inputStates, final double tpf) {
 				// Put together a pick ray
@@ -207,7 +211,7 @@ public class Scene extends ExampleBase {
 
 				String text = "";
 				_text.getSceneHints().setCullHint(CullHint.Never);
-				
+
 				Spatial highlightPlayer = null;
 				for (int i = 0; i < _pickResults.getNumber(); i++) {
 					final PickData pick = _pickResults.getPickData(i);
@@ -220,15 +224,19 @@ public class Scene extends ExampleBase {
 						}
 					}
 				}
-				for (Spatial player: players) {
+				for (Spatial player : players) {
 					if (player.equals(highlightPlayer)) {
 						player.setRenderState(playerHighlightMaterial);
 					} else {
-						player.setRenderState(playerMaterial);						
+						player.setRenderState(playerMaterial);
 					}
 				}
 				_text.setText(text);
 			}
 		}));
+	}
+
+	public void onCameraMovement(int cameraId, int markerId, double x, double y, double z, double[] matrix) {
+		logger.info("Camera " + cameraId + " detected marker " + markerId + " at <" + x + ", " + y + ", " + z + ">");
 	}
 }

@@ -56,7 +56,7 @@ public class BanjiiMain {
 		Server server = new Server(port);
 		ServletContextHandler handler = new ServletContextHandler(ServletContextHandler.SESSIONS);
 		handler.addServlet(new ServletHolder(new ServletContainer(new PackagesResourceConfig(
-				"org.urish.banjii.resources"))), "/api");
+				"org.urish.banjii.resources"))), "/api/*");
 		server.setHandler(handler);
 		server.start();
 		return server;
