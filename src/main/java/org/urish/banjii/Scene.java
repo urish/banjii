@@ -71,7 +71,7 @@ public class Scene extends ExampleBase {
 	@Override
 	protected void initExample() {
 		_canvas.setTitle("Banjii Viewer");
-		_canvas.getCanvasRenderer().getCamera().setLocation(new Vector3(200, 150, 200));
+		_canvas.getCanvasRenderer().getCamera().setLocation(new Vector3(5, 5, 5));
 		_canvas.getCanvasRenderer().getCamera().lookAt(new Vector3(0, 0, 0), Vector3.UNIT_Y);
 
 		_logicalLayer.registerTrigger(new InputTrigger(new KeyPressedCondition(Key.SPACE), new TriggerAction() {
@@ -128,11 +128,11 @@ public class Scene extends ExampleBase {
 	private Spatial createPlayer(String name) {
 		Node player = new Node(name);
 
-		Capsule body = new Capsule("Body", 5, 5, 5, 4, 16);
-		Sphere head = new Sphere("Head", 16, 16, 3);
-		head.setScale(2);
-		head.setTranslation(0, 17, 0);
+		Capsule body = new Capsule("Body", 5, 5, 5, 0.35, 1.5);
+		body.setTranslation(0, 0.75, 0);
 		body.updateModelBound();
+		Sphere head = new Sphere("Head", 16, 16, 0.4);
+		head.setTranslation(0, 2, 0);
 		head.updateModelBound();
 		player.attachChild(head);
 		player.attachChild(body);
@@ -159,7 +159,7 @@ public class Scene extends ExampleBase {
 		objects.attachChild(player);
 
 		player = createPlayer("Player 2");
-		player.setTranslation(0, 0, 18);
+		player.setTranslation(0, 0, 1.5);
 		objects.attachChild(player);
 
 		TextureState floorTexture = new TextureState();
@@ -168,8 +168,8 @@ public class Scene extends ExampleBase {
 		t0.setWrap(Texture.WrapMode.Repeat);
 		floorTexture.setTexture(t0);
 
-		Box box = new Box("Floor", new Vector3(-50, -1, -50), new Vector3(50, 1, 50));
-		box.setTranslation(new Vector3(0, -15, 0));
+		Box box = new Box("Floor", new Vector3(0, -.1, 0), new Vector3(5, 0, 5));
+		box.setTranslation(new Vector3(-2.5, 0, -2.5));
 		box.setRenderState(floorTexture);
 		box.setModelBound(new BoundingBox());
 		objects.attachChild(box);
