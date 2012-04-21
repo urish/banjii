@@ -7,8 +7,13 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 
 import org.apache.commons.io.IOUtils;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 
 import com.ardor3d.example.ExampleBase;
+import com.sun.jersey.api.core.PackagesResourceConfig;
+import com.sun.jersey.spi.container.servlet.ServletContainer;
 
 public class BanjiiMain {
 	private static File createTempDirectory() throws IOException {
@@ -47,8 +52,19 @@ public class BanjiiMain {
 		fieldSysPath.set(null, null);
 	}
 
+	public static Server startJettyServer(int port) throws Exception {
+		Server server = new Server(port);
+		ServletContextHandler handler = new ServletContextHandler(ServletContextHandler.SESSIONS);
+		handler.addServlet(new ServletHolder(new ServletContainer(new PackagesResourceConfig(
+				"org.urish.banjii.resources"))), "/api");
+		server.setHandler(handler);
+		server.start();
+		return server;
+	}
+
 	public static void main(String[] args) throws Exception {
 		loadEmbededLGWGL();
+		startJettyServer(1280);
 		ExampleBase.start(Scene.class);
 	}
 }
