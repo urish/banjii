@@ -37,7 +37,6 @@ import com.ardor3d.scenegraph.shape.Box;
 import com.ardor3d.scenegraph.shape.Capsule;
 import com.ardor3d.scenegraph.shape.Sphere;
 import com.ardor3d.ui.text.BasicText;
-import com.ardor3d.util.ReadOnlyTimer;
 import com.ardor3d.util.TextureManager;
 
 public class Scene extends ExampleBase implements CameraListener {
@@ -49,27 +48,12 @@ public class Scene extends ExampleBase implements CameraListener {
 	/** Text fields used to present info about the example. */
 	private final BasicText _exampleInfo[] = new BasicText[8];
 
-	double counter = 0;
-	int frames = 0;
-
 	private BoundingPickResults _pickResults;
 	private BasicText _text;
 
 	private final List<Spatial> players = new ArrayList<Spatial>();
 	private MaterialState playerMaterial;
 	private MaterialState playerHighlightMaterial;
-
-	@Override
-	protected void updateExample(final ReadOnlyTimer timer) {
-		counter += timer.getTimePerFrame();
-		frames++;
-		if (counter > 1) {
-			final double fps = (frames / counter);
-			counter = 0;
-			frames = 0;
-			System.out.printf("%7.1f FPS\n", fps);
-		}
-	}
 
 	@Override
 	protected void initExample() {
