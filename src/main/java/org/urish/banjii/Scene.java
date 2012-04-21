@@ -23,6 +23,8 @@ import com.ardor3d.math.ColorRGBA;
 import com.ardor3d.math.Ray3;
 import com.ardor3d.math.Vector2;
 import com.ardor3d.math.Vector3;
+import com.ardor3d.math.type.ReadOnlyMatrix3;
+import com.ardor3d.math.type.ReadOnlyVector3;
 import com.ardor3d.renderer.pass.RenderPass;
 import com.ardor3d.renderer.queue.RenderBucketType;
 import com.ardor3d.renderer.state.MaterialState;
@@ -219,12 +221,13 @@ public class Scene extends ExampleBase {
 		}));
 	}
 
-	public void setPlayerPosition(int playerId, double x, double y, double z) {
+	public void setPlayerTransform(int playerId, ReadOnlyVector3 position, ReadOnlyMatrix3 rotation) {
 		if (playerId >= players.size()) {
 			logger.warning("Player " + playerId + " not found! Ignoring request");
 			return;
 		}
-		players.get(playerId).setTranslation(x, y, z);
+		players.get(playerId).setTranslation(position);
+		players.get(playerId).setRotation(rotation);
 		players.get(playerId).acceptVisitor(new UpdateModelBoundVisitor(), false);
 	}
 }
