@@ -36,6 +36,7 @@ import com.ardor3d.scenegraph.hint.LightCombineMode;
 import com.ardor3d.scenegraph.shape.Box;
 import com.ardor3d.scenegraph.shape.Capsule;
 import com.ardor3d.scenegraph.shape.Sphere;
+import com.ardor3d.scenegraph.visitor.UpdateModelBoundVisitor;
 import com.ardor3d.ui.text.BasicText;
 import com.ardor3d.util.TextureManager;
 
@@ -227,6 +228,6 @@ public class Scene extends ExampleBase implements CameraListener {
 			return;
 		}
 		players.get(markerId).setTranslation(x, y, z);
-		((Node)players.get(markerId)).updateWorldBound(true);
+		players.get(markerId).acceptVisitor(new UpdateModelBoundVisitor(), false);
 	}
 }
