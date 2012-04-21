@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.urish.banjii.api.CameraManager;
+
 import com.ardor3d.bounding.BoundingBox;
 import com.ardor3d.example.ExampleBase;
 import com.ardor3d.framework.Canvas;
@@ -42,8 +44,6 @@ public class Scene extends ExampleBase {
 	/** The Constant logger. */
 	private static final Logger logger = Logger.getLogger(Scene.class.getName());
 
-	public static Scene instance;
-
 	/** Text fields used to present info about the example. */
 	private final BasicText _exampleInfo[] = new BasicText[8];
 
@@ -56,7 +56,7 @@ public class Scene extends ExampleBase {
 
 	@Override
 	protected void initExample() {
-		instance = this;
+		CameraManager.instance.setScene(this);
 
 		_canvas.setTitle("Banjii Viewer");
 		_canvas.getCanvasRenderer().getCamera().setLocation(new Vector3(5, 5, 5));

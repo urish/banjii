@@ -9,11 +9,20 @@ public class CameraManager implements CameraListener {
 
 	private static final Logger logger = Logger.getLogger(CameraManager.class.getName());
 
+	private Scene scene = null;
+
 	public void onCameraMovement(int cameraId, int markerId, double x, double y, double z, double[] matrix) {
 		logger.info("Camera " + cameraId + " detected marker " + markerId + " at <" + x + ", " + y + ", " + z + ">");
-		Scene listener = Scene.instance;
-		if (listener != null) {
-			listener.setPlayerPosition(markerId, x, y, z);
+		if (scene != null) {
+			scene.setPlayerPosition(markerId, x, y, z);
 		}
-	}	
+	}
+
+	public Scene getScene() {
+		return scene;
+	}
+
+	public void setScene(Scene scene) {
+		this.scene = scene;
+	}
 }
