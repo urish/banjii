@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.urish.banjii.api.CameraListener;
-
 import com.ardor3d.bounding.BoundingBox;
 import com.ardor3d.example.ExampleBase;
 import com.ardor3d.framework.Canvas;
@@ -40,7 +38,7 @@ import com.ardor3d.scenegraph.visitor.UpdateModelBoundVisitor;
 import com.ardor3d.ui.text.BasicText;
 import com.ardor3d.util.TextureManager;
 
-public class Scene extends ExampleBase implements CameraListener {
+public class Scene extends ExampleBase {
 	/** The Constant logger. */
 	private static final Logger logger = Logger.getLogger(Scene.class.getName());
 
@@ -221,13 +219,12 @@ public class Scene extends ExampleBase implements CameraListener {
 		}));
 	}
 
-	public void onCameraMovement(int cameraId, int markerId, double x, double y, double z, double[] matrix) {
-		logger.info("Camera " + cameraId + " detected marker " + markerId + " at <" + x + ", " + y + ", " + z + ">");
-		if (markerId >= players.size()) {
-			logger.warning("Player " + markerId + " not found! Ignoring request");
+	public void setPlayerPosition(int playerId, double x, double y, double z) {
+		if (playerId >= players.size()) {
+			logger.warning("Player " + playerId + " not found! Ignoring request");
 			return;
 		}
-		players.get(markerId).setTranslation(x, y, z);
-		players.get(markerId).acceptVisitor(new UpdateModelBoundVisitor(), false);
+		players.get(playerId).setTranslation(x, y, z);
+		players.get(playerId).acceptVisitor(new UpdateModelBoundVisitor(), false);
 	}
 }
