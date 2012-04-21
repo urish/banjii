@@ -163,7 +163,7 @@ public class Scene extends ExampleBase {
 		objects.attachChild(player);
 
 		TextureState floorTexture = new TextureState();
-		Texture t0 = TextureManager.load("images/ardor3d_white_256.jpg",
+		Texture t0 = TextureManager.load("textures/floor.jpg",
 				Texture.MinificationFilter.BilinearNearestMipMap, true);
 		t0.setWrap(Texture.WrapMode.Repeat);
 		floorTexture.setTexture(t0);
