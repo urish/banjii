@@ -222,5 +222,11 @@ public class Scene extends ExampleBase implements CameraListener {
 
 	public void onCameraMovement(int cameraId, int markerId, double x, double y, double z, double[] matrix) {
 		logger.info("Camera " + cameraId + " detected marker " + markerId + " at <" + x + ", " + y + ", " + z + ">");
+		if (markerId >= players.size()) {
+			logger.warning("Player " + markerId + " not found! Ignoring request");
+			return;
+		}
+		players.get(markerId).setTranslation(x, y, z);
+		((Node)players.get(markerId)).updateWorldBound(true);
 	}
 }
