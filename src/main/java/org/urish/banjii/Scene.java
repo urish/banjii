@@ -22,6 +22,7 @@ import com.ardor3d.input.logical.TwoInputStates;
 import com.ardor3d.intersection.BoundingPickResults;
 import com.ardor3d.intersection.PickData;
 import com.ardor3d.intersection.PickingUtil;
+import com.ardor3d.intersection.PrimitivePickResults;
 import com.ardor3d.math.ColorRGBA;
 import com.ardor3d.math.Matrix3;
 import com.ardor3d.math.Ray3;
@@ -61,9 +62,14 @@ public class Scene extends ExampleBase {
 	private final List<Spatial> players = new ArrayList<Spatial>();
 	private MaterialState playerMaterial;
 	private MaterialState playerHighlightMaterial;
+	private MaterialState playerActiveMaterial;
 
 	private TextureState playerHeadTexture;
 	private UserInterface userInterface;
+
+	private Spatial activePlayer;
+
+	private PlayerControl playerControl;
 
 	@Override
 	protected void initExample() {
@@ -162,6 +168,8 @@ public class Scene extends ExampleBase {
 		playerMaterial.setDiffuse(MaterialFace.FrontAndBack, ColorRGBA.WHITE);
 		playerHighlightMaterial = new MaterialState();
 		playerHighlightMaterial.setDiffuse(MaterialFace.FrontAndBack, ColorRGBA.YELLOW);
+		playerActiveMaterial = new MaterialState();
+		playerActiveMaterial.setDiffuse(MaterialFace.FrontAndBack, ColorRGBA.RED);
 
 		playerHeadTexture = new TextureState();
 		Texture t0 = TextureManager.load("textures/head.jpg", Texture.MinificationFilter.BilinearNearestMipMap, false);
@@ -171,7 +179,7 @@ public class Scene extends ExampleBase {
 		for (Player player : PlayerManager.instance.getPlayers()) {
 			final Spatial playerObject = createPlayer(player.getName());
 			objects.attachChild(playerObject);
-			playerObject.setTranslation(player.getId() / 3, 0, player.getId() % 3);
+			playerObject.setUserData(player);
 			player.addListener(new PlayerListener() {
 				public void onPlayerUpdate(Player player) {
 					if (player.isVisible()) {
@@ -179,8 +187,15 @@ public class Scene extends ExampleBase {
 					} else {
 						playerObject.removeFromParent();
 					}
+					Vector3 translation = new Vector3(playerObject.getTranslation());
+					translation.setX(player.getX() - 2.5);
+					translation.setZ(player.getY() - 2.5);
+					playerObject.setTranslation(translation);
+					playerObject.acceptVisitor(new UpdateModelBoundVisitor(), false);
 				}
 			});
+			player.setX(2 + player.getId() / 3);
+			player.setY(2 + player.getId() % 3);
 		}
 
 		TextureState floorTexture = new TextureState();
@@ -244,12 +259,53 @@ public class Scene extends ExampleBase {
 					if (player.equals(highlightPlayer)) {
 						player.setRenderState(playerHighlightMaterial);
 					} else {
-						player.setRenderState(playerMaterial);
+						if (player.equals(activePlayer)) {
+							player.setRenderState(playerActiveMaterial);
+						} else {
+							player.setRenderState(playerMaterial);
+						}
 					}
 				}
 				_text.setText(text);
 			}
 		}));
+	}
+
+	@Override
+	protected void processPicks(final PrimitivePickResults pickResults) {
+		Spatial oldActivePlayer = activePlayer;
+		activePlayer = null;
+		for (int i = 0; i < _pickResults.getNumber(); i++) {
+			final PickData pick = _pickResults.getPickData(i);
+			if (pick.getTarget() instanceof Spatial) {
+				Spatial pickParent = ((Spatial) pick.getTarget()).getParent();
+				if (players.contains(pickParent)) {
+					activePlayer = pickParent;
+					break;
+				}
+			}
+		}
+
+		if ((activePlayer == oldActivePlayer) || ((activePlayer != null) && activePlayer.equals(oldActivePlayer))) {
+			return;
+		}
+		if (oldActivePlayer != null) {
+			oldActivePlayer.setRenderState(playerMaterial);
+			playerControl.removeTriggers();
+			playerControl = null;
+		}
+
+		if (activePlayer != null) {
+			activePlayer.setRenderState(playerActiveMaterial);
+			if (oldActivePlayer == null) {
+				_logicalLayer.deregisterTrigger(_controlHandle.getKeyTrigger());
+			}
+			playerControl = new PlayerControl(_logicalLayer, (Player) activePlayer.getUserData());
+		} else {
+			if (oldActivePlayer != null) {
+				_logicalLayer.registerTrigger(_controlHandle.getKeyTrigger());
+			}
+		}
 	}
 
 	@Override
