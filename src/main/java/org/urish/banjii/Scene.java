@@ -26,6 +26,7 @@ import com.ardor3d.math.Vector2;
 import com.ardor3d.math.Vector3;
 import com.ardor3d.math.type.ReadOnlyMatrix3;
 import com.ardor3d.math.type.ReadOnlyVector3;
+import com.ardor3d.renderer.Renderer;
 import com.ardor3d.renderer.pass.RenderPass;
 import com.ardor3d.renderer.queue.RenderBucketType;
 import com.ardor3d.renderer.state.MaterialState;
@@ -41,6 +42,7 @@ import com.ardor3d.scenegraph.shape.Capsule;
 import com.ardor3d.scenegraph.shape.Sphere;
 import com.ardor3d.scenegraph.visitor.UpdateModelBoundVisitor;
 import com.ardor3d.ui.text.BasicText;
+import com.ardor3d.util.ReadOnlyTimer;
 import com.ardor3d.util.TextureManager;
 
 public class Scene extends ExampleBase {
@@ -58,6 +60,7 @@ public class Scene extends ExampleBase {
 	private MaterialState playerHighlightMaterial;
 
 	private TextureState playerHeadTexture;
+	private UserInterface userInterface;
 
 	@Override
 	protected void initExample() {
@@ -86,6 +89,9 @@ public class Scene extends ExampleBase {
 		_root.setRenderState(ms);
 
 		_root.attachChild(createObjects());
+
+		userInterface = new UserInterface(_canvas, _physicalLayer, _logicalLayer);
+		userInterface.init();
 
 		// Setup textfields for presenting example info.
 		final Node textNodes = new Node("Text");
@@ -125,8 +131,8 @@ public class Scene extends ExampleBase {
 		body.setTranslation(0, 0.75, 0);
 		body.updateModelBound();
 		Sphere head = new Sphere("Head", 16, 16, 0.35);
-	    Matrix3 rotation = new Matrix3();
-	    rotation.fromAngles(Math.PI / 2, Math.PI, 0);
+		Matrix3 rotation = new Matrix3();
+		rotation.fromAngles(Math.PI / 2, Math.PI, 0);
 		head.setTranslation(0, 2.25, 0);
 		head.setRotation(rotation);
 		head.setScale(0.8, 1, 1.5);
@@ -152,7 +158,7 @@ public class Scene extends ExampleBase {
 		playerMaterial.setDiffuse(MaterialFace.FrontAndBack, ColorRGBA.WHITE);
 		playerHighlightMaterial = new MaterialState();
 		playerHighlightMaterial.setDiffuse(MaterialFace.FrontAndBack, ColorRGBA.YELLOW);
-		
+
 		playerHeadTexture = new TextureState();
 		Texture t0 = TextureManager.load("textures/head.jpg", Texture.MinificationFilter.BilinearNearestMipMap, false);
 		t0.setWrap(Texture.WrapMode.Clamp);
@@ -232,6 +238,23 @@ public class Scene extends ExampleBase {
 				_text.setText(text);
 			}
 		}));
+	}
+
+	@Override
+	protected void updateExample(final ReadOnlyTimer timer) {
+		userInterface.update(timer);
+	}
+
+	@Override
+	protected void updateLogicalLayer(final ReadOnlyTimer timer) {
+		userInterface.updateLogicalLayer(timer);
+	}
+
+	@Override
+	protected void renderExample(final Renderer renderer) {
+		super.renderExample(renderer);
+		renderer.renderBuckets();
+		userInterface.render(renderer);
 	}
 
 	public void setPlayerTransform(int playerId, ReadOnlyVector3 position, ReadOnlyMatrix3 rotation) {
