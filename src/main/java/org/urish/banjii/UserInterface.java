@@ -1,5 +1,10 @@
 package org.urish.banjii;
 
+import org.urish.banjii.model.Player;
+import org.urish.banjii.model.PlayerListener;
+import org.urish.banjii.model.PlayerManager;
+
+import com.ardor3d.extension.ui.UICheckBox;
 import com.ardor3d.extension.ui.UIComponent;
 import com.ardor3d.extension.ui.UIFrame;
 import com.ardor3d.extension.ui.UIHud;
@@ -7,6 +12,10 @@ import com.ardor3d.extension.ui.UILabel;
 import com.ardor3d.extension.ui.UIPanel;
 import com.ardor3d.extension.ui.UITabbedPane;
 import com.ardor3d.extension.ui.UITabbedPane.TabPlacement;
+import com.ardor3d.extension.ui.event.ActionEvent;
+import com.ardor3d.extension.ui.event.ActionListener;
+import com.ardor3d.extension.ui.layout.GridLayout;
+import com.ardor3d.extension.ui.layout.GridLayoutData;
 import com.ardor3d.extension.ui.layout.RowLayout;
 import com.ardor3d.framework.Canvas;
 import com.ardor3d.input.PhysicalLayer;
@@ -65,7 +74,23 @@ public class UserInterface {
 	}
 
 	private UIComponent makeControlsPanel() {
-		final UIPanel controlsPanel = new UIPanel();
+		final UIPanel controlsPanel = new UIPanel(new GridLayout());
+		for (final Player player : PlayerManager.instance.getPlayers()) {
+			final UICheckBox playerCheckbox = new UICheckBox(player.getName());
+			playerCheckbox.setLayoutData(GridLayoutData.WrapAndGrow);
+			playerCheckbox.setSelected(player.isVisible());
+			playerCheckbox.addActionListener(new ActionListener() {
+				public void actionPerformed(final ActionEvent event) {
+					player.setVisible(playerCheckbox.isSelected());
+				}
+			});
+			player.addListener(new PlayerListener() {
+				public void onPlayerUpdate(Player player) {
+					playerCheckbox.setSelected(player.isVisible());
+				}
+			});
+			controlsPanel.add(playerCheckbox);
+		}
 		return controlsPanel;
 	}
 

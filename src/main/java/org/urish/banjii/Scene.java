@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.urish.banjii.api.CameraManager;
+import org.urish.banjii.model.Player;
+import org.urish.banjii.model.PlayerListener;
+import org.urish.banjii.model.PlayerManager;
 
 import com.ardor3d.bounding.BoundingBox;
 import com.ardor3d.example.ExampleBase;
@@ -141,6 +144,7 @@ public class Scene extends ExampleBase {
 		player.attachChild(body);
 		player.attachChild(head);
 		player.setRenderState(playerMaterial);
+		player.setScale(0.4);
 		players.add(player);
 
 		return player;
@@ -164,12 +168,20 @@ public class Scene extends ExampleBase {
 		t0.setWrap(Texture.WrapMode.Clamp);
 		playerHeadTexture.setTexture(t0);
 
-		Spatial player = createPlayer("Player 1");
-		objects.attachChild(player);
-
-		player = createPlayer("Player 2");
-		player.setTranslation(0, 0, 1.5);
-		objects.attachChild(player);
+		for (Player player : PlayerManager.instance.getPlayers()) {
+			final Spatial playerObject = createPlayer(player.getName());
+			objects.attachChild(playerObject);
+			playerObject.setTranslation(player.getId() / 3, 0, player.getId() % 3);
+			player.addListener(new PlayerListener() {
+				public void onPlayerUpdate(Player player) {
+					if (player.isVisible()) {
+						objects.attachChild(playerObject);
+					} else {
+						playerObject.removeFromParent();
+					}
+				}
+			});
+		}
 
 		TextureState floorTexture = new TextureState();
 		t0 = TextureManager.load("textures/floor.jpg", Texture.MinificationFilter.BilinearNearestMipMap, true);
