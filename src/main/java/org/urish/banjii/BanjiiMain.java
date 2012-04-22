@@ -10,6 +10,8 @@ import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.urish.banjii.connector.CintieConnector;
+import org.urish.banjii.model.PlayerManager;
 
 import com.ardor3d.example.ExampleBase;
 import com.sun.jersey.api.core.PackagesResourceConfig;
@@ -64,6 +66,7 @@ public class BanjiiMain {
 
 	public static void main(String[] args) throws Exception {
 		loadEmbededLGWGL();
+		new CintieConnector(PlayerManager.instance);
 		startJettyServer(1280);
 		ExampleBase.start(Scene.class);
 	}
