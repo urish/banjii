@@ -30,8 +30,10 @@ public class Player {
 	}
 
 	public void setVisible(boolean visible) {
-		this.visible = visible;
-		broadcastUpdate();
+		if (this.visible != visible) {
+			this.visible = visible;
+			broadcastUpdate();
+		}
 	}
 
 	public double getX() {
@@ -39,8 +41,10 @@ public class Player {
 	}
 
 	public void setX(double x) {
-		this.x = x;
-		broadcastUpdate();
+		if (this.x != x) {
+			this.x = x;
+			broadcastUpdate();
+		}
 	}
 
 	public double getY() {
@@ -48,8 +52,10 @@ public class Player {
 	}
 
 	public void setY(double y) {
-		this.y = y;
-		broadcastUpdate();
+		if (this.y != y) {
+			this.y = y;
+			broadcastUpdate();
+		}
 	}
 
 	private void broadcastUpdate() {
