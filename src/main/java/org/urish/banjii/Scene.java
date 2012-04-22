@@ -32,7 +32,6 @@ import com.ardor3d.math.type.ReadOnlyMatrix3;
 import com.ardor3d.math.type.ReadOnlyVector3;
 import com.ardor3d.renderer.Renderer;
 import com.ardor3d.renderer.pass.RenderPass;
-import com.ardor3d.renderer.queue.RenderBucketType;
 import com.ardor3d.renderer.state.MaterialState;
 import com.ardor3d.renderer.state.MaterialState.ColorMaterial;
 import com.ardor3d.renderer.state.MaterialState.MaterialFace;
@@ -40,7 +39,6 @@ import com.ardor3d.renderer.state.TextureState;
 import com.ardor3d.scenegraph.Node;
 import com.ardor3d.scenegraph.Spatial;
 import com.ardor3d.scenegraph.hint.CullHint;
-import com.ardor3d.scenegraph.hint.LightCombineMode;
 import com.ardor3d.scenegraph.shape.Box;
 import com.ardor3d.scenegraph.shape.Capsule;
 import com.ardor3d.scenegraph.shape.Sphere;
@@ -52,9 +50,6 @@ import com.ardor3d.util.TextureManager;
 public class Scene extends ExampleBase {
 	/** The Constant logger. */
 	private static final Logger logger = Logger.getLogger(Scene.class.getName());
-
-	/** Text fields used to present info about the example. */
-	private final BasicText _exampleInfo[] = new BasicText[8];
 
 	private BoundingPickResults _pickResults;
 	private BasicText _text;
@@ -79,12 +74,6 @@ public class Scene extends ExampleBase {
 		_canvas.getCanvasRenderer().getCamera().setLocation(new Vector3(5, 5, 5));
 		_canvas.getCanvasRenderer().getCamera().lookAt(new Vector3(0, 0, 0), Vector3.UNIT_Y);
 
-		_logicalLayer.registerTrigger(new InputTrigger(new KeyPressedCondition(Key.SPACE), new TriggerAction() {
-			public void perform(final Canvas source, final TwoInputStates inputStates, final double tpf) {
-				updateText();
-			}
-		}));
-
 		final RenderPass rootPass = new RenderPass();
 		rootPass.add(_root);
 
@@ -101,36 +90,6 @@ public class Scene extends ExampleBase {
 
 		userInterface = new UserInterface(_canvas, _physicalLayer, _logicalLayer);
 		userInterface.init();
-
-		// Setup textfields for presenting example info.
-		final Node textNodes = new Node("Text");
-		final RenderPass renderPass = new RenderPass();
-		renderPass.add(textNodes);
-		textNodes.getSceneHints().setRenderBucketType(RenderBucketType.Ortho);
-		textNodes.getSceneHints().setLightCombineMode(LightCombineMode.Off);
-
-		final double infoStartY = _canvas.getCanvasRenderer().getCamera().getHeight() / 2;
-		for (int i = 0; i < _exampleInfo.length; i++) {
-			_exampleInfo[i] = BasicText.createDefaultTextLabel("Text", "", 16);
-			_exampleInfo[i].setTranslation(new Vector3(10, infoStartY - i * 20, 0));
-			textNodes.attachChild(_exampleInfo[i]);
-		}
-
-		textNodes.updateGeometricState(0.0);
-		updateText();
-
-		_logicalLayer.registerTrigger(new InputTrigger(new KeyPressedCondition(Key.ONE), new TriggerAction() {
-			public void perform(final Canvas source, final TwoInputStates inputStates, final double tpf) {
-				// TODO
-			}
-		}));
-	}
-
-	/**
-	 * Update text information.
-	 */
-	private void updateText() {
-		_exampleInfo[0].setText("Hello !");
 	}
 
 	private Spatial createPlayer(String name) {
