@@ -226,6 +226,12 @@ public class Scene extends ExampleBase {
 	protected void registerInputTriggers() {
 		super.registerInputTriggers();
 
+		_logicalLayer.registerTrigger(new InputTrigger(new KeyPressedCondition(Key.ZERO), new TriggerAction() {
+			public void perform(Canvas source, TwoInputStates inputState, double tpf) {
+				_canvas.getCanvasRenderer().getCamera().lookAt(new Vector3(0, 0, 0), Vector3.UNIT_Y);
+			}
+		}));
+
 		_logicalLayer.registerTrigger(new InputTrigger(new MouseMovedCondition(), new TriggerAction() {
 			public void perform(final Canvas source, final TwoInputStates inputStates, final double tpf) {
 				// Put together a pick ray
