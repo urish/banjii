@@ -43,8 +43,8 @@ public class UserInterface {
 
 	public void init() {
 		final UITabbedPane pane = new UITabbedPane(TabPlacement.NORTH);
+		pane.add(makePlayersPanel(), "Players");
 		pane.add(makeInfoPanel(), "Info");
-		pane.add(makeControlsPanel(), "Controls");
 		pane.add(makeCamerasPanel(), "Cameras");
 
 		frame = new UIFrame("Banjii Control Panel");
@@ -55,8 +55,8 @@ public class UserInterface {
 
 		frame.setUseStandin(true);
 		frame.setOpacity(1f);
-		frame.setLocationRelativeTo(canvas.getCanvasRenderer().getCamera());
-		frame.setName("sample");
+		frame.setHudXY(5, canvas.getCanvasRenderer().getCamera().getHeight() - frame.getLocalComponentHeight() - 5);
+		frame.setName("UI");
 
 		hud = new UIHud();
 		hud.add(frame);
@@ -73,7 +73,7 @@ public class UserInterface {
 		return infoPanel;
 	}
 
-	private UIComponent makeControlsPanel() {
+	private UIComponent makePlayersPanel() {
 		final UIPanel controlsPanel = new UIPanel(new GridLayout());
 		for (final Player player : PlayerManager.instance.getPlayers()) {
 			final UICheckBox playerCheckbox = new UICheckBox(player.getName());
