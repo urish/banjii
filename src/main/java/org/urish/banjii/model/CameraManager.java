@@ -1,10 +1,9 @@
-package org.urish.banjii.api;
+package org.urish.banjii.model;
 
 import java.util.logging.Logger;
 
-import org.urish.banjii.Scene;
+import org.urish.banjii.api.CameraListener;
 
-import com.ardor3d.math.Matrix3;
 import com.ardor3d.math.Matrix4;
 import com.ardor3d.math.Transform;
 import com.ardor3d.math.Vector3;
@@ -13,8 +12,8 @@ public class CameraManager implements CameraListener {
 	public static final CameraManager instance = new CameraManager();
 
 	private static final Logger logger = Logger.getLogger(CameraManager.class.getName());
-
-	private Scene scene = null;
+	
+	private final PlayerManager playerManager = PlayerManager.instance;
 
 	/**
 	 * Translates a given POSIT matrix to a standard 3d affine transformation
@@ -35,22 +34,16 @@ public class CameraManager implements CameraListener {
 		Matrix4 cameraMatrix = new Matrix4();
 		cameraMatrix.multiplyLocal(1/100.);
 		
-		if (scene != null) {
+		Player player = playerManager.getPlayers().get(markerId);
+		if (player != null) {
 			affineMatrix.multiplyLocal(cameraMatrix);
 			Transform objectTransform = new Transform();
 			objectTransform.fromHomogeneousMatrix(affineMatrix);
 			objectTransform.translate(0, 0, -2.5);
 			Vector3 point = new Vector3(0, 0, 0);
 			objectTransform.applyForward(point);
-			scene.setPlayerTransform(markerId, point, Matrix3.IDENTITY);
+			player.setX(point.getX());
+			player.setY(point.getZ());
 		}
-	}
-
-	public Scene getScene() {
-		return scene;
-	}
-
-	public void setScene(Scene scene) {
-		this.scene = scene;
 	}
 }

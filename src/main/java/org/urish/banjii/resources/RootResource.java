@@ -6,7 +6,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 
-import org.urish.banjii.api.CameraManager;
+import org.urish.banjii.model.CameraManager;
 
 @Path("/")
 public class RootResource {

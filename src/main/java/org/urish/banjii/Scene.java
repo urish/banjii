@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.urish.banjii.api.CameraManager;
 import org.urish.banjii.model.Player;
 import org.urish.banjii.model.PlayerListener;
 import org.urish.banjii.model.PlayerManager;
@@ -28,8 +27,6 @@ import com.ardor3d.math.Matrix3;
 import com.ardor3d.math.Ray3;
 import com.ardor3d.math.Vector2;
 import com.ardor3d.math.Vector3;
-import com.ardor3d.math.type.ReadOnlyMatrix3;
-import com.ardor3d.math.type.ReadOnlyVector3;
 import com.ardor3d.renderer.Renderer;
 import com.ardor3d.renderer.pass.RenderPass;
 import com.ardor3d.renderer.state.MaterialState;
@@ -68,8 +65,6 @@ public class Scene extends ExampleBase {
 
 	@Override
 	protected void initExample() {
-		CameraManager.instance.setScene(this);
-
 		_canvas.setTitle("Banjii Viewer");
 		_canvas.getCanvasRenderer().getCamera().setLocation(new Vector3(5, 5, 5));
 		_canvas.getCanvasRenderer().getCamera().lookAt(new Vector3(0, 0, 0), Vector3.UNIT_Y);
@@ -288,15 +283,5 @@ public class Scene extends ExampleBase {
 		super.renderExample(renderer);
 		renderer.renderBuckets();
 		userInterface.render(renderer);
-	}
-
-	public void setPlayerTransform(int playerId, ReadOnlyVector3 position, ReadOnlyMatrix3 rotation) {
-		if (playerId >= players.size()) {
-			logger.warning("Player " + playerId + " not found! Ignoring request");
-			return;
-		}
-		players.get(playerId).setTranslation(position);
-		players.get(playerId).setRotation(rotation);
-		players.get(playerId).acceptVisitor(new UpdateModelBoundVisitor(), false);
 	}
 }
