@@ -24,6 +24,7 @@ import com.ardor3d.intersection.PickingUtil;
 import com.ardor3d.intersection.PrimitivePickResults;
 import com.ardor3d.math.ColorRGBA;
 import com.ardor3d.math.Matrix3;
+import com.ardor3d.math.Quaternion;
 import com.ardor3d.math.Ray3;
 import com.ardor3d.math.Vector2;
 import com.ardor3d.math.Vector3;
@@ -38,6 +39,7 @@ import com.ardor3d.scenegraph.Spatial;
 import com.ardor3d.scenegraph.hint.CullHint;
 import com.ardor3d.scenegraph.shape.Box;
 import com.ardor3d.scenegraph.shape.Capsule;
+import com.ardor3d.scenegraph.shape.Pyramid;
 import com.ardor3d.scenegraph.shape.Sphere;
 import com.ardor3d.scenegraph.visitor.UpdateModelBoundVisitor;
 import com.ardor3d.ui.text.BasicText;
@@ -52,6 +54,7 @@ public class Scene extends ExampleBase {
 	private BasicText _text;
 
 	private final List<Spatial> players = new ArrayList<Spatial>();
+	private final List<Spatial> cameras = new ArrayList<Spatial>();
 	private MaterialState playerMaterial;
 	private MaterialState playerHighlightMaterial;
 	private MaterialState playerActiveMaterial;
@@ -71,11 +74,6 @@ public class Scene extends ExampleBase {
 
 		final RenderPass rootPass = new RenderPass();
 		rootPass.add(_root);
-
-		final TextureState ts = new TextureState();
-		ts.setEnabled(true);
-		ts.setTexture(TextureManager.load("images/ardor3d_white_256.jpg", Texture.MinificationFilter.Trilinear, true));
-		_root.setRenderState(ts);
 
 		final MaterialState ms = new MaterialState();
 		ms.setColorMaterial(ColorMaterial.Diffuse);
@@ -151,6 +149,18 @@ public class Scene extends ExampleBase {
 			player.setX(2 + player.getId() / 3);
 			player.setY(2 + player.getId() % 3);
 		}
+		
+		MaterialState cameraMaterial = new MaterialState();
+		cameraMaterial.setDiffuse(MaterialFace.FrontAndBack, ColorRGBA.CYAN);
+		Pyramid camera = new Pyramid("Camera 1", 0.2, 0.4);
+		camera.setTranslation(new Vector3(-2.5, 2, 0));
+		Quaternion q = Quaternion.fetchTempInstance();
+		q.fromEulerAngles(0, Math.PI/4, 0);
+		camera.setRotation(q);
+		camera.setRenderState(cameraMaterial);
+		objects.attachChild(camera);
+		camera.updateModelBound();
+		cameras.add(camera);
 
 		TextureState floorTexture = new TextureState();
 		t0 = TextureManager.load("textures/floor.jpg", Texture.MinificationFilter.BilinearNearestMipMap, true);
@@ -212,6 +222,9 @@ public class Scene extends ExampleBase {
 							highlightPlayer = pickParent;
 							text = pickParent.getName();
 							break;
+						}
+						if (cameras.contains(pick.getTarget())) {
+							text = ((Spatial)pick.getTarget()).getName();							
 						}
 					}
 				}
