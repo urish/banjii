@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.urish.banjii.model.Camera;
+import org.urish.banjii.model.CameraListener;
 import org.urish.banjii.model.CameraManager;
 import org.urish.banjii.model.Player;
 import org.urish.banjii.model.PlayerListener;
@@ -162,7 +163,7 @@ public class Scene extends ExampleBase {
 		for (Camera camera : CameraManager.instance.getCameras()) {
 			MaterialState cameraMaterial = new MaterialState();
 			cameraMaterial.setDiffuse(MaterialFace.FrontAndBack, ColorRGBA.CYAN);
-			Pyramid cameraObject = new Pyramid("Camera 1", 0.2, 0.4);
+			final Pyramid cameraObject = new Pyramid("Camera 1", 0.2, 0.4);
 			cameraObject.setUserData(camera);
 			cameraObject.setTranslation(new Vector3(-2.5, 2, 0));
 			Quaternion q = Quaternion.fetchTempInstance();
@@ -172,6 +173,16 @@ public class Scene extends ExampleBase {
 			objects.attachChild(cameraObject);
 			cameraObject.updateModelBound();
 			cameras.add(cameraObject);
+
+			camera.addListener(new CameraListener() {
+				public void onCameraUpdate(Camera camera) {
+					if (camera.isActive()) {
+						objects.attachChild(cameraObject);
+					} else {
+						cameraObject.removeFromParent();
+					}
+				}
+			});
 		}
 
 		TextureState floorTexture = new TextureState();
@@ -326,11 +337,7 @@ public class Scene extends ExampleBase {
 	protected void updateExample(final ReadOnlyTimer timer) {
 		for (Spatial cameraObject : cameras) {
 			Camera camera = (Camera) cameraObject.getUserData();
-			if ((new Date().getTime() - camera.getLastActiveTime()) < 1000) {
-				objects.attachChild(cameraObject);
-			} else {
-				cameraObject.removeFromParent();
-			}
+			camera.setActive((new Date().getTime() - camera.getLastActiveTime()) < 1000);
 		}
 		userInterface.update(timer);
 	}

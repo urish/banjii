@@ -65,4 +65,8 @@ public class CameraManager implements CameraListener {
 	public List<Camera> getCameras() {
 		return cameras;
 	}
+
+	public void startCalibration(Camera camera) {
+		camera.setCalibrating(true);
+	}
 }
