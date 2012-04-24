@@ -9,6 +9,7 @@ public class Camera {
 	private boolean active;
 	private boolean calibrating;
 	private double scale;
+	private long lastActiveTime;
 	private Vector3 position = new Vector3();
 
 	public Camera(int id) {
@@ -44,6 +45,14 @@ public class Camera {
 
 	public void setScale(double scale) {
 		this.scale = scale;
+	}
+
+	public long getLastActiveTime() {
+		return lastActiveTime;
+	}
+
+	public void setLastActiveTime(long lastActiveTime) {
+		this.lastActiveTime = lastActiveTime;
 	}
 
 	public Vector3 getPosition() {

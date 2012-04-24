@@ -1,6 +1,7 @@
 package org.urish.banjii.model;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -28,13 +29,14 @@ public class CameraManager implements CameraListener {
 		}
 	}
 
-	public void onCameraMovement(int cameraId, int markerId, double[] matrix) {
+	public void onMarkerMovement(int cameraId, int markerId, double[] matrix) {
 		PositMatrix posit = PositMatrix.load(matrix);
 		logger.info("Camera " + cameraId + " detected marker " + markerId + " at " + posit);
 		Camera camera = cameras.get(cameraId);
 		Player player = playerManager.getPlayers().get(markerId);
 
 		if (camera != null) {
+			camera.setLastActiveTime(new Date().getTime());
 			if (camera.isCalibrating()) {
 				calibrateCamera(camera, markerId, posit);
 			} else if (player != null) {
@@ -58,5 +60,9 @@ public class CameraManager implements CameraListener {
 		objectTransform.applyForward(point);
 		player.setX(point.getX());
 		player.setY(point.getZ());
+	}
+	
+	public List<Camera> getCameras() {
+		return cameras;
 	}
 }

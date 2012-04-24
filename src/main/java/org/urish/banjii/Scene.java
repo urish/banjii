@@ -1,9 +1,12 @@
 package org.urish.banjii;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.urish.banjii.model.Camera;
+import org.urish.banjii.model.CameraManager;
 import org.urish.banjii.model.Player;
 import org.urish.banjii.model.PlayerListener;
 import org.urish.banjii.model.PlayerManager;
@@ -66,6 +69,8 @@ public class Scene extends ExampleBase {
 
 	private PlayerControl playerControl;
 
+	private Node objects;
+
 	@Override
 	protected void initExample() {
 		_canvas.setTitle("Banjii Viewer");
@@ -114,7 +119,7 @@ public class Scene extends ExampleBase {
 	 * @return the node containing the objects
 	 */
 	private Node createObjects() {
-		final Node objects = new Node("objects");
+		objects = new Node("objects");
 
 		playerMaterial = new MaterialState();
 		playerMaterial.setDiffuse(MaterialFace.FrontAndBack, ColorRGBA.WHITE);
@@ -149,18 +154,21 @@ public class Scene extends ExampleBase {
 			player.setX(2 + player.getId() / 3);
 			player.setY(2 + player.getId() % 3);
 		}
-		
-		MaterialState cameraMaterial = new MaterialState();
-		cameraMaterial.setDiffuse(MaterialFace.FrontAndBack, ColorRGBA.CYAN);
-		Pyramid camera = new Pyramid("Camera 1", 0.2, 0.4);
-		camera.setTranslation(new Vector3(-2.5, 2, 0));
-		Quaternion q = Quaternion.fetchTempInstance();
-		q.fromEulerAngles(0, Math.PI/4, 0);
-		camera.setRotation(q);
-		camera.setRenderState(cameraMaterial);
-		objects.attachChild(camera);
-		camera.updateModelBound();
-		cameras.add(camera);
+
+		for (Camera camera : CameraManager.instance.getCameras()) {
+			MaterialState cameraMaterial = new MaterialState();
+			cameraMaterial.setDiffuse(MaterialFace.FrontAndBack, ColorRGBA.CYAN);
+			Pyramid cameraObject = new Pyramid("Camera 1", 0.2, 0.4);
+			cameraObject.setUserData(camera);
+			cameraObject.setTranslation(new Vector3(-2.5, 2, 0));
+			Quaternion q = Quaternion.fetchTempInstance();
+			q.fromEulerAngles(0, Math.PI / 4, 0);
+			cameraObject.setRotation(q);
+			cameraObject.setRenderState(cameraMaterial);
+			objects.attachChild(cameraObject);
+			cameraObject.updateModelBound();
+			cameras.add(cameraObject);
+		}
 
 		TextureState floorTexture = new TextureState();
 		t0 = TextureManager.load("textures/floor.jpg", Texture.MinificationFilter.BilinearNearestMipMap, true);
@@ -224,7 +232,7 @@ public class Scene extends ExampleBase {
 							break;
 						}
 						if (cameras.contains(pick.getTarget())) {
-							text = ((Spatial)pick.getTarget()).getName();							
+							text = ((Spatial) pick.getTarget()).getName();
 						}
 					}
 				}
@@ -283,6 +291,14 @@ public class Scene extends ExampleBase {
 
 	@Override
 	protected void updateExample(final ReadOnlyTimer timer) {
+		for (Spatial cameraObject : cameras) {
+			Camera camera = (Camera) cameraObject.getUserData();
+			if ((new Date().getTime() - camera.getLastActiveTime()) < 1000) {
+				objects.attachChild(cameraObject);		
+			} else {
+				cameraObject.removeFromParent();
+			}
+		}
 		userInterface.update(timer);
 	}
 

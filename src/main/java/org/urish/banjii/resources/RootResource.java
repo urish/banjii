@@ -25,6 +25,6 @@ public class RootResource {
 		for (int i = 0; i < dblMatrix.length; i++) {
 			dblMatrix[i] = Double.valueOf(splitMatrix[i]);
 		}
-		cameraManager.onCameraMovement(cameraId, markerId, dblMatrix);
+		cameraManager.onMarkerMovement(cameraId, markerId, dblMatrix);
 	}
 }
