@@ -1,18 +1,23 @@
 package org.urish.banjii.model;
 
+import com.ardor3d.math.Vector3;
+
 public class Camera {
 	private final int id;
+	private final PositMatrix[] calibrationMatrices = new PositMatrix[2];
+
 	private boolean active;
 	private boolean calibrating;
-	private double x;
-	private double y;
+	private double scale;
+	private Vector3 position = new Vector3();
 
-	private Camera(int id) {
+	public Camera(int id) {
 		super();
 		this.id = id;
 		this.active = true;
+		this.scale = 1;
 	}
-	
+
 	public int getId() {
 		return id;
 	}
@@ -33,20 +38,23 @@ public class Camera {
 		this.calibrating = calibrating;
 	}
 
-	public double getX() {
-		return x;
+	public double getScale() {
+		return scale;
 	}
 
-	public void setX(double x) {
-		this.x = x;
+	public void setScale(double scale) {
+		this.scale = scale;
 	}
 
-	public double getY() {
-		return y;
+	public Vector3 getPosition() {
+		return position;
 	}
 
-	public void setY(double y) {
-		this.y = y;
+	public void setPosition(Vector3 position) {
+		this.position = position;
 	}
 
+	public PositMatrix[] getCalibrationMatrices() {
+		return calibrationMatrices;
+	}
 }
