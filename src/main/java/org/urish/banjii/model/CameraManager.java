@@ -9,12 +9,14 @@ import org.urish.banjii.api.CameraListener;
 
 import com.ardor3d.math.Transform;
 import com.ardor3d.math.Vector3;
+import com.ardor3d.math.type.ReadOnlyVector3;
 
 public class CameraManager implements CameraListener {
 	public static final CameraManager instance = new CameraManager();
 
 	private static final Logger logger = Logger.getLogger(CameraManager.class.getName());
 	private static final int MAX_CAMERAS = 2;
+	private static final double CALIBRATION_MARKER_DISTANCE = 0.06; /* Meters */
 
 	private final PlayerManager playerManager = PlayerManager.instance;
 	private final List<Camera> cameras = new ArrayList<Camera>();
@@ -47,8 +49,26 @@ public class CameraManager implements CameraListener {
 	}
 
 	private void calibrateCamera(Camera camera, int markerId, PositMatrix posit) {
-		if ((markerId >= 0) && (markerId <= 1)) {
-			camera.getCalibrationMatrices()[markerId] = posit;
+		PositMatrix[] matrices = camera.getCalibrationMatrices();
+		double distance = Double.NaN;
+		ReadOnlyVector3 marker1Position = null;
+		synchronized (matrices) {
+			if ((markerId >= 0) && (markerId <= 1)) {
+				matrices[markerId] = posit;
+			}
+			if (matrices[0] != null && (matrices[1] != null)) {
+				marker1Position = matrices[0].getTranslation();
+				distance = matrices[0].getTranslation().distance(matrices[1].getTranslation());
+			}
+		}
+		if (marker1Position != null) {
+			double scale = CALIBRATION_MARKER_DISTANCE / distance;
+			logger.info("Camera calibrated, distance scale: " + scale + ", position: " + marker1Position);
+			Vector3 cameraPosition = new Vector3(marker1Position);
+			cameraPosition.multiplyLocal(scale);
+			camera.setScale(scale);
+			camera.setPosition(cameraPosition);
+			camera.setCalibrating(false);
 		}
 	}
 
@@ -61,12 +81,17 @@ public class CameraManager implements CameraListener {
 		player.setX(point.getX());
 		player.setY(point.getZ());
 	}
-	
+
 	public List<Camera> getCameras() {
 		return cameras;
 	}
 
 	public void startCalibration(Camera camera) {
 		camera.setCalibrating(true);
+		PositMatrix[] matrices = camera.getCalibrationMatrices();
+		synchronized (matrices) {
+			matrices[0] = null;
+			matrices[1] = null;
+		}
 	}
 }

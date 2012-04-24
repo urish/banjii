@@ -30,6 +30,7 @@ import com.ardor3d.framework.Canvas;
 import com.ardor3d.input.PhysicalLayer;
 import com.ardor3d.input.logical.LogicalLayer;
 import com.ardor3d.math.ColorRGBA;
+import com.ardor3d.math.Vector3;
 import com.ardor3d.math.type.ReadOnlyColorRGBA;
 import com.ardor3d.renderer.Renderer;
 import com.ardor3d.util.ReadOnlyTimer;
@@ -117,6 +118,7 @@ public class UserInterface {
 			final UILabel activeLabel = new UILabel("off");
 			activeLabel.setForegroundColor(ColorRGBA.RED);
 			final UIButton calibrateButton = new UIButton("Calibrate");
+			final UILabel infoLabel = new UILabel("[]");
 			calibrateButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent event) {
 					cameraManager.startCalibration(camera);
@@ -125,7 +127,8 @@ public class UserInterface {
 			camerasPanel.add(cameraLabel);
 			camerasPanel.add(activeLabel);
 			camerasPanel.add(calibrateButton);
-			calibrateButton.setLayoutData(GridLayoutData.WrapAndGrow);
+			camerasPanel.add(infoLabel);
+			infoLabel.setLayoutData(GridLayoutData.WrapAndGrow);
 
 			camera.addListener(new CameraListener() {
 				public void onCameraUpdate(Camera camera) {
@@ -144,6 +147,9 @@ public class UserInterface {
 						activeLabel.setForegroundColor(ColorRGBA.RED);
 					}
 					calibrateButton.setVisible(!camera.isCalibrating());
+					Vector3 cameraPosition = camera.getPosition();
+					infoLabel.setText("[" + (int) (1 / camera.getScale()) + " <" + cameraPosition.getX() + ","
+							+ cameraPosition.getY() + "," + cameraPosition.getZ() + ">]");
 				}
 			});
 		}
