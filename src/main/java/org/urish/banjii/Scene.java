@@ -74,8 +74,7 @@ public class Scene extends ExampleBase {
 	@Override
 	protected void initExample() {
 		_canvas.setTitle("Banjii Viewer");
-		_canvas.getCanvasRenderer().getCamera().setLocation(new Vector3(5, 5, 5));
-		_canvas.getCanvasRenderer().getCamera().lookAt(new Vector3(0, 0, 0), Vector3.UNIT_Y);
+		resetCameraPosition();
 
 		final RenderPass rootPass = new RenderPass();
 		rootPass.add(_root);
@@ -88,6 +87,11 @@ public class Scene extends ExampleBase {
 
 		userInterface = new UserInterface(_canvas, _physicalLayer, _logicalLayer);
 		userInterface.init();
+	}
+
+	private void resetCameraPosition() {
+		_canvas.getCanvasRenderer().getCamera().setLocation(new Vector3(5, 5, 5));
+		_canvas.getCanvasRenderer().getCamera().lookAt(new Vector3(0, 0, 0), Vector3.UNIT_Y);
 	}
 
 	private Spatial createPlayer(String name) {
@@ -198,9 +202,38 @@ public class Scene extends ExampleBase {
 	protected void registerInputTriggers() {
 		super.registerInputTriggers();
 
+		final com.ardor3d.renderer.Camera sceneCamera = _canvas.getCanvasRenderer().getCamera();
+
 		_logicalLayer.registerTrigger(new InputTrigger(new KeyPressedCondition(Key.ZERO), new TriggerAction() {
 			public void perform(Canvas source, TwoInputStates inputState, double tpf) {
-				_canvas.getCanvasRenderer().getCamera().lookAt(new Vector3(0, 0, 0), Vector3.UNIT_Y);
+				sceneCamera.lookAt(new Vector3(0, 0, 0), Vector3.UNIT_Y);
+			}
+		}));
+
+		_logicalLayer.registerTrigger(new InputTrigger(new KeyPressedCondition(Key.ONE), new TriggerAction() {
+			public void perform(Canvas source, TwoInputStates inputState, double tpf) {
+				sceneCamera.setLocation(0, 0.5, 8);
+				sceneCamera.lookAt(new Vector3(0, 0.5, 0), Vector3.UNIT_Y);
+			}
+		}));
+
+		_logicalLayer.registerTrigger(new InputTrigger(new KeyPressedCondition(Key.TWO), new TriggerAction() {
+			public void perform(Canvas source, TwoInputStates inputState, double tpf) {
+				sceneCamera.setLocation(8, 0.5, 0);
+				sceneCamera.lookAt(new Vector3(0, 0.5, 0), Vector3.UNIT_Y);
+			}
+		}));
+
+		_logicalLayer.registerTrigger(new InputTrigger(new KeyPressedCondition(Key.THREE), new TriggerAction() {
+			public void perform(Canvas source, TwoInputStates inputState, double tpf) {
+				sceneCamera.setLocation(0, 10, 0);
+				sceneCamera.lookAt(new Vector3(0, 0, 0), Vector3.UNIT_Y);
+			}
+		}));
+
+		_logicalLayer.registerTrigger(new InputTrigger(new KeyPressedCondition(Key.FOUR), new TriggerAction() {
+			public void perform(Canvas source, TwoInputStates inputState, double tpf) {
+				resetCameraPosition();
 			}
 		}));
 
@@ -294,7 +327,7 @@ public class Scene extends ExampleBase {
 		for (Spatial cameraObject : cameras) {
 			Camera camera = (Camera) cameraObject.getUserData();
 			if ((new Date().getTime() - camera.getLastActiveTime()) < 1000) {
-				objects.attachChild(cameraObject);		
+				objects.attachChild(cameraObject);
 			} else {
 				cameraObject.removeFromParent();
 			}
