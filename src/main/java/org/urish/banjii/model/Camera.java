@@ -1,5 +1,6 @@
 package org.urish.banjii.model;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -10,7 +11,6 @@ public class Camera {
 	private final PositMatrix[] calibrationMatrices = new PositMatrix[2];
 	private final Set<CameraListener> listeners = new HashSet<CameraListener>();
 
-	private boolean active;
 	private boolean calibrating;
 	private double scale;
 	private long lastActiveTime;
@@ -19,7 +19,6 @@ public class Camera {
 	public Camera(int id) {
 		super();
 		this.id = id;
-		this.active = true;
 		this.scale = 1;
 	}
 
@@ -28,14 +27,7 @@ public class Camera {
 	}
 
 	public boolean isActive() {
-		return active;
-	}
-
-	public void setActive(boolean active) {
-		if (this.active != active) {
-			this.active = active;
-			broadcastUpdate();
-		}
+		return (new Date().getTime() - getLastActiveTime()) < 1000;
 	}
 
 	public boolean isCalibrating() {
@@ -99,12 +91,12 @@ public class Camera {
 	public void removeListener(CameraListener listener) {
 		listeners.remove(listener);
 	}
-	
+
 	@Override
 	public String toString() {
 		return "Camera " + getId();
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {
@@ -116,9 +108,9 @@ public class Camera {
 		if (!(obj.getClass().isAssignableFrom(Camera.class))) {
 			return false;
 		}
-		return ((Camera)obj).getId() == getId();
+		return ((Camera) obj).getId() == getId();
 	}
-	
+
 	@Override
 	public int hashCode() {
 		return 13 * id;

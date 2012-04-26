@@ -1,7 +1,6 @@
 package org.urish.banjii;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -335,10 +334,6 @@ public class Scene extends ExampleBase {
 
 	@Override
 	protected void updateExample(final ReadOnlyTimer timer) {
-		for (Spatial cameraObject : cameras) {
-			Camera camera = (Camera) cameraObject.getUserData();
-			camera.setActive((new Date().getTime() - camera.getLastActiveTime()) < 1000);
-		}
 		userInterface.update(timer);
 	}
 
