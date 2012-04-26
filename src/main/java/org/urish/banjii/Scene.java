@@ -334,6 +334,10 @@ public class Scene extends ExampleBase {
 
 	@Override
 	protected void updateExample(final ReadOnlyTimer timer) {
+		for (Spatial cameraObject : cameras) {
+			Camera camera = (Camera) cameraObject.getUserData();
+			camera.update();
+		}
 		userInterface.update(timer);
 	}
 

@@ -12,6 +12,7 @@ public class Camera {
 	private final Set<CameraListener> listeners = new HashSet<CameraListener>();
 
 	private boolean calibrating;
+	private boolean wasActive;
 	private double scale;
 	private long lastActiveTime;
 	private Vector3 position = new Vector3();
@@ -20,6 +21,7 @@ public class Camera {
 		super();
 		this.id = id;
 		this.scale = 1;
+		this.wasActive = true;
 	}
 
 	public int getId() {
@@ -90,6 +92,13 @@ public class Camera {
 
 	public void removeListener(CameraListener listener) {
 		listeners.remove(listener);
+	}
+
+	public void update() {
+		if (isActive() != wasActive) {
+			broadcastUpdate();
+			wasActive = isActive();
+		}
 	}
 
 	@Override
