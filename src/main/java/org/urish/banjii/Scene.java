@@ -27,7 +27,6 @@ import com.ardor3d.intersection.PickingUtil;
 import com.ardor3d.intersection.PrimitivePickResults;
 import com.ardor3d.math.ColorRGBA;
 import com.ardor3d.math.Matrix3;
-import com.ardor3d.math.Quaternion;
 import com.ardor3d.math.Ray3;
 import com.ardor3d.math.Vector2;
 import com.ardor3d.math.Vector3;
@@ -40,6 +39,7 @@ import com.ardor3d.renderer.state.TextureState;
 import com.ardor3d.scenegraph.Node;
 import com.ardor3d.scenegraph.Spatial;
 import com.ardor3d.scenegraph.hint.CullHint;
+import com.ardor3d.scenegraph.shape.AxisRods;
 import com.ardor3d.scenegraph.shape.Box;
 import com.ardor3d.scenegraph.shape.Capsule;
 import com.ardor3d.scenegraph.shape.Pyramid;
@@ -61,6 +61,8 @@ public class Scene extends ExampleBase {
 	private MaterialState playerMaterial;
 	private MaterialState playerHighlightMaterial;
 	private MaterialState playerActiveMaterial;
+	private MaterialState cameraMaterial;
+	private MaterialState cameraActiveMaterial;
 
 	private TextureState playerHeadTexture;
 	private UserInterface userInterface;
@@ -125,6 +127,10 @@ public class Scene extends ExampleBase {
 	private Node createObjects() {
 		objects = new Node("objects");
 
+		AxisRods rods = new AxisRods("AxisRods", true, 1.25, 0.15);
+		rods.setTranslation(-2.5, 0, -2.5);
+		objects.attachChild(rods);
+
 		playerMaterial = new MaterialState();
 		playerMaterial.setDiffuse(MaterialFace.FrontAndBack, ColorRGBA.WHITE);
 		playerHighlightMaterial = new MaterialState();
@@ -159,27 +165,38 @@ public class Scene extends ExampleBase {
 			player.setY(2 + player.getId() % 3);
 		}
 
+		cameraMaterial = new MaterialState();
+		cameraMaterial.setDiffuse(MaterialFace.FrontAndBack, ColorRGBA.GRAY);
+		cameraActiveMaterial = new MaterialState();
+		cameraActiveMaterial.setAmbient(MaterialFace.FrontAndBack, ColorRGBA.GREEN);
+
+		final Matrix3 cameraOrientationMatrix = new Matrix3(-1, 0, 0, 0, 0, 1, 0, -1, 0);
+
 		for (Camera camera : CameraManager.instance.getCameras()) {
-			MaterialState cameraMaterial = new MaterialState();
-			cameraMaterial.setDiffuse(MaterialFace.FrontAndBack, ColorRGBA.CYAN);
 			final Pyramid cameraObject = new Pyramid("Camera 1", 0.2, 0.4);
 			cameraObject.setUserData(camera);
-			cameraObject.setTranslation(new Vector3(-2.5, 2, 0));
-			Quaternion q = Quaternion.fetchTempInstance();
-			q.fromEulerAngles(0, Math.PI / 4, 0);
-			cameraObject.setRotation(q);
 			cameraObject.setRenderState(cameraMaterial);
-			objects.attachChild(cameraObject);
 			cameraObject.updateModelBound();
 			cameras.add(cameraObject);
 
 			camera.addListener(new CameraListener() {
 				public void onCameraUpdate(Camera camera) {
-					if (camera.isActive()) {
+					if (camera.isConnected()) {
 						objects.attachChild(cameraObject);
+						if (camera.isActive()) {
+							cameraObject.setRenderState(cameraActiveMaterial);
+						} else {
+							cameraObject.setRenderState(cameraMaterial);
+						}
 					} else {
 						cameraObject.removeFromParent();
 					}
+					cameraObject.setTranslation(camera.getPosition());
+					cameraObject.addTranslation(-2.5, 0, -2.5);
+					Matrix3 orientation = new Matrix3(camera.getOrientation());
+					orientation.multiplyLocal(cameraOrientationMatrix);
+					cameraObject.setRotation(orientation);
+					cameraObject.updateModelBound();
 				}
 			});
 		}
@@ -334,6 +351,10 @@ public class Scene extends ExampleBase {
 
 	@Override
 	protected void updateExample(final ReadOnlyTimer timer) {
+		for (Spatial cameraObject : cameras) {
+			Camera camera = (Camera) cameraObject.getUserData();
+			camera.update();
+		}
 		userInterface.update(timer);
 	}
 

@@ -30,8 +30,8 @@ import com.ardor3d.framework.Canvas;
 import com.ardor3d.input.PhysicalLayer;
 import com.ardor3d.input.logical.LogicalLayer;
 import com.ardor3d.math.ColorRGBA;
-import com.ardor3d.math.Vector3;
 import com.ardor3d.math.type.ReadOnlyColorRGBA;
+import com.ardor3d.math.type.ReadOnlyVector3;
 import com.ardor3d.renderer.Renderer;
 import com.ardor3d.util.ReadOnlyTimer;
 
@@ -140,6 +140,9 @@ public class UserInterface {
 			cameraListeners.put(camera, new CameraListener() {
 				public void onCameraUpdate(Camera camera) {
 					if (camera.isActive()) {
+						activeLabel.setText("ACT");
+						activeLabel.setForegroundColor(ColorRGBA.BLUE);
+					} else if (camera.isConnected()) {
 						activeLabel.setText("ON");
 						activeLabel.setForegroundColor(DARK_GREEN);
 					} else {
@@ -147,7 +150,7 @@ public class UserInterface {
 						activeLabel.setForegroundColor(ColorRGBA.RED);
 					}
 					calibrateButton.setVisible(!camera.isCalibrating());
-					Vector3 cameraPosition = camera.getPosition();
+					ReadOnlyVector3 cameraPosition = camera.getPosition();
 					infoLabel.setText("[" + (int) (1 / camera.getScale()) + " <" + cameraPosition.getX() + ","
 							+ cameraPosition.getY() + "," + cameraPosition.getZ() + ">]");
 				}

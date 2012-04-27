@@ -4,18 +4,30 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.ardor3d.math.Matrix3;
 import com.ardor3d.math.Vector3;
+import com.ardor3d.math.type.ReadOnlyMatrix3;
+import com.ardor3d.math.type.ReadOnlyVector3;
 
 public class Camera {
 	private final int id;
 	private final PositMatrix[] calibrationMatrices = new PositMatrix[2];
 	private final Set<CameraListener> listeners = new HashSet<CameraListener>();
 
+	private boolean wasActive;
+	private boolean wasConnected;
+
 	private boolean calibrating;
 	private double scale;
+	private long lastConnectedTime;
 	private long lastActiveTime;
-	private long lastConnectionTime;
-	private Vector3 position = new Vector3();
+
+
+
+
+	private ReadOnlyMatrix3 orientation = new Matrix3();
+	private ReadOnlyVector3 position = new Vector3();
+
 
 	public Camera(int id) {
 		super();
@@ -29,6 +41,10 @@ public class Camera {
 
 	public boolean isActive() {
 		return (new Date().getTime() - getLastActiveTime()) < 1000;
+	}
+
+	public boolean isConnected() {
+		return isActive() || (new Date().getTime() - getLastConnectedTime()) < 1000;
 	}
 
 	public boolean isCalibrating() {
@@ -53,6 +69,14 @@ public class Camera {
 		}
 	}
 
+	public long getLastConnectedTime() {
+		return lastConnectedTime;
+	}
+
+	public void setLastConnectedTime(long lastConnectedTime) {
+		this.lastConnectedTime = lastConnectedTime;
+	}
+
 	public long getLastActiveTime() {
 		return lastActiveTime;
 	}
@@ -64,13 +88,24 @@ public class Camera {
 		}
 	}
 
-	public Vector3 getPosition() {
+	public ReadOnlyVector3 getPosition() {
 		return position;
 	}
 
-	public void setPosition(Vector3 position) {
+	public void setPosition(ReadOnlyVector3 position) {
 		if (!this.position.equals(position)) {
 			this.position = position;
+			broadcastUpdate();
+		}
+	}
+
+	public ReadOnlyMatrix3 getOrientation() {
+		return orientation;
+	}
+
+	public void setOrientation(ReadOnlyMatrix3 orientation) {
+		if (!this.orientation.equals(orientation)) {
+			this.orientation = orientation;
 			broadcastUpdate();
 		}
 	}
@@ -91,6 +126,17 @@ public class Camera {
 
 	public void removeListener(CameraListener listener) {
 		listeners.remove(listener);
+	}
+
+	public void update() {
+		if (isConnected() != wasConnected) {
+			broadcastUpdate();
+			wasConnected = isConnected();
+		}
+		if (isActive() != wasActive) {
+			broadcastUpdate();
+			wasActive = isActive();
+		}
 	}
 
 	@Override
@@ -117,11 +163,4 @@ public class Camera {
 		return 13 * id;
 	}
 
-	public long getLastConnectionTime() {
-		return lastConnectionTime;
-	}
-
-	public void setLastConnectionTime(long lastConnectionTime) {
-		this.lastConnectionTime = lastConnectionTime;
-	}
 }
