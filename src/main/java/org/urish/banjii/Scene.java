@@ -27,7 +27,6 @@ import com.ardor3d.intersection.PickingUtil;
 import com.ardor3d.intersection.PrimitivePickResults;
 import com.ardor3d.math.ColorRGBA;
 import com.ardor3d.math.Matrix3;
-import com.ardor3d.math.Quaternion;
 import com.ardor3d.math.Ray3;
 import com.ardor3d.math.Vector2;
 import com.ardor3d.math.Vector3;
@@ -40,6 +39,7 @@ import com.ardor3d.renderer.state.TextureState;
 import com.ardor3d.scenegraph.Node;
 import com.ardor3d.scenegraph.Spatial;
 import com.ardor3d.scenegraph.hint.CullHint;
+import com.ardor3d.scenegraph.shape.AxisRods;
 import com.ardor3d.scenegraph.shape.Box;
 import com.ardor3d.scenegraph.shape.Capsule;
 import com.ardor3d.scenegraph.shape.Pyramid;
@@ -127,6 +127,10 @@ public class Scene extends ExampleBase {
 	private Node createObjects() {
 		objects = new Node("objects");
 
+		AxisRods rods = new AxisRods("AxisRods", true, 1.25, 0.15);
+		rods.setTranslation(-2.5, 0, -2.5);
+		objects.attachChild(rods);
+
 		playerMaterial = new MaterialState();
 		playerMaterial.setDiffuse(MaterialFace.FrontAndBack, ColorRGBA.WHITE);
 		playerHighlightMaterial = new MaterialState();
@@ -164,15 +168,13 @@ public class Scene extends ExampleBase {
 		cameraMaterial = new MaterialState();
 		cameraMaterial.setDiffuse(MaterialFace.FrontAndBack, ColorRGBA.GRAY);
 		cameraActiveMaterial = new MaterialState();
-		cameraActiveMaterial.setDiffuse(MaterialFace.FrontAndBack, ColorRGBA.GREEN);
+		cameraActiveMaterial.setAmbient(MaterialFace.FrontAndBack, ColorRGBA.GREEN);
+
+		final Matrix3 cameraOrientationMatrix = new Matrix3(-1, 0, 0, 0, 0, 1, 0, -1, 0);
 
 		for (Camera camera : CameraManager.instance.getCameras()) {
 			final Pyramid cameraObject = new Pyramid("Camera 1", 0.2, 0.4);
 			cameraObject.setUserData(camera);
-			cameraObject.setTranslation(new Vector3(-2.5, 2, 0));
-			Quaternion q = Quaternion.fetchTempInstance();
-			q.fromEulerAngles(0, Math.PI / 4, 0);
-			cameraObject.setRotation(q);
 			cameraObject.setRenderState(cameraMaterial);
 			cameraObject.updateModelBound();
 			cameras.add(cameraObject);
@@ -189,6 +191,12 @@ public class Scene extends ExampleBase {
 					} else {
 						cameraObject.removeFromParent();
 					}
+					cameraObject.setTranslation(camera.getPosition());
+					cameraObject.addTranslation(-2.5, 0, -2.5);
+					Matrix3 orientation = new Matrix3(camera.getOrientation());
+					orientation.multiplyLocal(cameraOrientationMatrix);
+					cameraObject.setRotation(orientation);
+					cameraObject.updateModelBound();
 				}
 			});
 		}

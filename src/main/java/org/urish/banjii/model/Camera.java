@@ -4,7 +4,10 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.ardor3d.math.Matrix3;
 import com.ardor3d.math.Vector3;
+import com.ardor3d.math.type.ReadOnlyMatrix3;
+import com.ardor3d.math.type.ReadOnlyVector3;
 
 public class Camera {
 	private final int id;
@@ -18,7 +21,8 @@ public class Camera {
 	private double scale;
 	private long lastConnectedTime;
 	private long lastActiveTime;
-	private Vector3 position = new Vector3();
+	private ReadOnlyMatrix3 orientation = new Matrix3();
+	private ReadOnlyVector3 position = new Vector3();
 
 	public Camera(int id) {
 		super();
@@ -79,13 +83,24 @@ public class Camera {
 		}
 	}
 
-	public Vector3 getPosition() {
+	public ReadOnlyVector3 getPosition() {
 		return position;
 	}
 
-	public void setPosition(Vector3 position) {
+	public void setPosition(ReadOnlyVector3 position) {
 		if (!this.position.equals(position)) {
 			this.position = position;
+			broadcastUpdate();
+		}
+	}
+
+	public ReadOnlyMatrix3 getOrientation() {
+		return orientation;
+	}
+
+	public void setOrientation(ReadOnlyMatrix3 orientation) {
+		if (!this.orientation.equals(orientation)) {
+			this.orientation = orientation;
 			broadcastUpdate();
 		}
 	}

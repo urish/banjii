@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 
 import org.urish.banjii.api.CameraListener;
 
+import com.ardor3d.math.Matrix3;
 import com.ardor3d.math.Transform;
 import com.ardor3d.math.Vector3;
 import com.ardor3d.math.type.ReadOnlyVector3;
@@ -25,8 +26,9 @@ public class CameraManager implements CameraListener {
 		super();
 		for (int i = 0; i < MAX_CAMERAS; i++) {
 			Camera camera = new Camera(i);
-			camera.setPosition(new Vector3(0, 0, -2.5));
-			camera.setScale(1 / 100.);
+			camera.setPosition(new Vector3(0, 1, 2.5));
+			camera.setOrientation(new Matrix3(0, 0, 1, 0, 1, 0, 1, 0, 0));
+			camera.setScale(1 / 150.);
 			cameras.add(camera);
 		}
 	}
@@ -73,11 +75,12 @@ public class CameraManager implements CameraListener {
 	}
 
 	private void updateCamera(Camera camera, Player player, PositMatrix posit) {
-		posit.multiplyTranslation(camera.getScale());
-		posit.addTranslation(camera.getPosition());
-		Transform objectTransform = posit.toTransform();
-		Vector3 point = new Vector3(0, 0, 0);
-		objectTransform.applyForward(point);
+		Transform cameraTransform = new Transform();
+		cameraTransform.setScale(camera.getScale());
+		cameraTransform.setTranslation(camera.getPosition());
+		cameraTransform.setRotation(camera.getOrientation());
+		Vector3 point = new Vector3(posit.getTranslation());
+		cameraTransform.applyForward(point);
 		player.setX(point.getX());
 		player.setY(point.getZ());
 	}
