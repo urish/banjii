@@ -31,6 +31,15 @@ public class CameraManager implements CameraListener {
 		}
 	}
 
+	public void updateCameraConnection(int cameraId)
+	{
+		logger.info("Camera " + cameraId + " found no markers but is still connected");
+		Camera camera = cameras.get(cameraId);
+		if (camera != null) {
+			camera.setLastConnectionTime(new Date().getTime());
+		}
+	}
+	
 	public void onMarkerMovement(int cameraId, int markerId, double[] matrix) {
 		PositMatrix posit = PositMatrix.load(matrix);
 		logger.info("Camera " + cameraId + " detected marker " + markerId + " at " + posit);

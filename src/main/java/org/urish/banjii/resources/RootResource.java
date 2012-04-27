@@ -18,6 +18,13 @@ public class RootResource {
 	}
 	
 	@POST
+	@Path("/updateConnection/{id}")
+	public void updateConnection(@PathParam("id") int cameraId)
+	{
+		cameraManager.updateCameraConnection(cameraId);
+	}
+	
+	@POST
 	@Path("/cameras/{id}")
 	public void updateCamera(@PathParam("id") int cameraId, @FormParam("marker") int markerId, @FormParam("matrix") String matrix) {
 		String[] splitMatrix = matrix.split(",");

@@ -14,6 +14,7 @@ public class Camera {
 	private boolean calibrating;
 	private double scale;
 	private long lastActiveTime;
+	private long lastConnectionTime;
 	private Vector3 position = new Vector3();
 
 	public Camera(int id) {
@@ -114,5 +115,13 @@ public class Camera {
 	@Override
 	public int hashCode() {
 		return 13 * id;
+	}
+
+	public long getLastConnectionTime() {
+		return lastConnectionTime;
+	}
+
+	public void setLastConnectionTime(long lastConnectionTime) {
+		this.lastConnectionTime = lastConnectionTime;
 	}
 }
