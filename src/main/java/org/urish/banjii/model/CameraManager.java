@@ -5,14 +5,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.urish.banjii.api.CameraListener;
-
 import com.ardor3d.math.Matrix3;
 import com.ardor3d.math.Transform;
 import com.ardor3d.math.Vector3;
 import com.ardor3d.math.type.ReadOnlyVector3;
 
-public class CameraManager implements CameraListener {
+public class CameraManager {
 	public static final CameraManager instance = new CameraManager();
 
 	private static final Logger logger = Logger.getLogger(CameraManager.class.getName());
