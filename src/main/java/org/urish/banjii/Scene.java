@@ -61,6 +61,8 @@ public class Scene extends ExampleBase {
 	private MaterialState playerMaterial;
 	private MaterialState playerHighlightMaterial;
 	private MaterialState playerActiveMaterial;
+	private MaterialState cameraMaterial;
+	private MaterialState cameraActiveMaterial;
 
 	private TextureState playerHeadTexture;
 	private UserInterface userInterface;
@@ -159,9 +161,12 @@ public class Scene extends ExampleBase {
 			player.setY(2 + player.getId() % 3);
 		}
 
+		cameraMaterial = new MaterialState();
+		cameraMaterial.setDiffuse(MaterialFace.FrontAndBack, ColorRGBA.GRAY);
+		cameraActiveMaterial = new MaterialState();
+		cameraActiveMaterial.setDiffuse(MaterialFace.FrontAndBack, ColorRGBA.GREEN);
+
 		for (Camera camera : CameraManager.instance.getCameras()) {
-			MaterialState cameraMaterial = new MaterialState();
-			cameraMaterial.setDiffuse(MaterialFace.FrontAndBack, ColorRGBA.CYAN);
 			final Pyramid cameraObject = new Pyramid("Camera 1", 0.2, 0.4);
 			cameraObject.setUserData(camera);
 			cameraObject.setTranslation(new Vector3(-2.5, 2, 0));
@@ -169,14 +174,18 @@ public class Scene extends ExampleBase {
 			q.fromEulerAngles(0, Math.PI / 4, 0);
 			cameraObject.setRotation(q);
 			cameraObject.setRenderState(cameraMaterial);
-			objects.attachChild(cameraObject);
 			cameraObject.updateModelBound();
 			cameras.add(cameraObject);
 
 			camera.addListener(new CameraListener() {
 				public void onCameraUpdate(Camera camera) {
-					if (camera.isActive()) {
+					if (camera.isConnected()) {
 						objects.attachChild(cameraObject);
+						if (camera.isActive()) {
+							cameraObject.setRenderState(cameraActiveMaterial);
+						} else {
+							cameraObject.setRenderState(cameraMaterial);
+						}
 					} else {
 						cameraObject.removeFromParent();
 					}

@@ -140,6 +140,9 @@ public class UserInterface {
 			cameraListeners.put(camera, new CameraListener() {
 				public void onCameraUpdate(Camera camera) {
 					if (camera.isActive()) {
+						activeLabel.setText("ACT");
+						activeLabel.setForegroundColor(ColorRGBA.BLUE);
+					} else if (camera.isConnected()) {
 						activeLabel.setText("ON");
 						activeLabel.setForegroundColor(DARK_GREEN);
 					} else {

@@ -11,9 +11,12 @@ public class Camera {
 	private final PositMatrix[] calibrationMatrices = new PositMatrix[2];
 	private final Set<CameraListener> listeners = new HashSet<CameraListener>();
 
-	private boolean calibrating;
 	private boolean wasActive;
+	private boolean wasConnected;
+
+	private boolean calibrating;
 	private double scale;
+	private long lastConnectedTime;
 	private long lastActiveTime;
 	private Vector3 position = new Vector3();
 
@@ -21,7 +24,6 @@ public class Camera {
 		super();
 		this.id = id;
 		this.scale = 1;
-		this.wasActive = true;
 	}
 
 	public int getId() {
@@ -30,6 +32,10 @@ public class Camera {
 
 	public boolean isActive() {
 		return (new Date().getTime() - getLastActiveTime()) < 1000;
+	}
+
+	public boolean isConnected() {
+		return isActive() || (new Date().getTime() - getLastConnectedTime()) < 1000;
 	}
 
 	public boolean isCalibrating() {
@@ -52,6 +58,14 @@ public class Camera {
 			this.scale = scale;
 			broadcastUpdate();
 		}
+	}
+
+	public long getLastConnectedTime() {
+		return lastConnectedTime;
+	}
+
+	public void setLastConnectedTime(long lastConnectedTime) {
+		this.lastConnectedTime = lastConnectedTime;
 	}
 
 	public long getLastActiveTime() {
@@ -95,6 +109,10 @@ public class Camera {
 	}
 
 	public void update() {
+		if (isConnected() != wasConnected) {
+			broadcastUpdate();
+			wasConnected = isConnected();
+		}
 		if (isActive() != wasActive) {
 			broadcastUpdate();
 			wasActive = isActive();
