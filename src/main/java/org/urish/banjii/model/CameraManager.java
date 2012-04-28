@@ -15,7 +15,7 @@ public class CameraManager {
 
 	private static final Logger logger = Logger.getLogger(CameraManager.class.getName());
 	private static final int MAX_CAMERAS = 2;
-	private static final double CALIBRATION_MARKER_DISTANCE = 0.06; /* Meters */
+	private static final double CALIBRATION_MARKER_DISTANCE = 0.16; /* Meters */
 
 	private final PlayerManager playerManager = PlayerManager.instance;
 	private final List<Camera> cameras = new ArrayList<Camera>();
@@ -66,7 +66,7 @@ public class CameraManager {
 				matrices[markerId] = posit;
 			}
 			if (matrices[0] != null && (matrices[1] != null)) {
-				marker1Position = matrices[0].getTranslation();
+				marker1Position = new Vector3(matrices[0].getTranslation());
 				distance = matrices[0].getTranslation().distance(matrices[1].getTranslation());
 			}
 		}
@@ -75,6 +75,7 @@ public class CameraManager {
 			logger.info("Camera calibrated, distance scale: " + scale + ", position: " + marker1Position);
 			Vector3 cameraPosition = new Vector3(marker1Position);
 			cameraPosition.multiplyLocal(scale);
+			cameraPosition.addLocal(new Vector3(2.5, 2, 2.5));
 			camera.setScale(scale);
 			camera.setPosition(cameraPosition);
 			camera.setCalibrating(false);
