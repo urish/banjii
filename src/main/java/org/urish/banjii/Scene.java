@@ -148,6 +148,7 @@ public class Scene extends ExampleBase {
 			objects.attachChild(playerObject);
 			playerObject.setUserData(player);
 			player.addListener(new PlayerListener() {
+				@Override
 				public void onPlayerUpdate(Player player) {
 					if (player.isVisible()) {
 						objects.attachChild(playerObject);
@@ -180,6 +181,7 @@ public class Scene extends ExampleBase {
 			cameras.add(cameraObject);
 
 			camera.addListener(new CameraListener() {
+				@Override
 				public void onCameraUpdate(Camera camera) {
 					if (camera.isConnected()) {
 						objects.attachChild(cameraObject);
@@ -200,6 +202,17 @@ public class Scene extends ExampleBase {
 				}
 			});
 		}
+
+		TextureState markersTexture = new TextureState();
+		t0 = TextureManager.load("textures/markers.png", Texture.MinificationFilter.BilinearNearestMipMap, true);
+		t0.setWrap(Texture.WrapMode.Repeat);
+		markersTexture.setTexture(t0);
+
+		Box markersBox = new Box("Markers", new Vector3(-0.297/2, -.1, -.210/2), new Vector3(0.297/2, 0, .210/2));
+		markersBox.setTranslation(new Vector3(0, 0.01, 0));
+		markersBox.setRenderState(markersTexture);
+		markersBox.setModelBound(new BoundingBox());
+		objects.attachChild(markersBox);
 
 		TextureState floorTexture = new TextureState();
 		t0 = TextureManager.load("textures/floor.jpg", Texture.MinificationFilter.BilinearNearestMipMap, true);
@@ -232,12 +245,14 @@ public class Scene extends ExampleBase {
 		final com.ardor3d.renderer.Camera sceneCamera = _canvas.getCanvasRenderer().getCamera();
 
 		_logicalLayer.registerTrigger(new InputTrigger(new KeyPressedCondition(Key.ZERO), new TriggerAction() {
+			@Override
 			public void perform(Canvas source, TwoInputStates inputState, double tpf) {
 				sceneCamera.lookAt(new Vector3(0, 0, 0), Vector3.UNIT_Y);
 			}
 		}));
 
 		_logicalLayer.registerTrigger(new InputTrigger(new KeyPressedCondition(Key.ONE), new TriggerAction() {
+			@Override
 			public void perform(Canvas source, TwoInputStates inputState, double tpf) {
 				sceneCamera.setLocation(0, 0.5, 8);
 				sceneCamera.lookAt(new Vector3(0, 0.5, 0), Vector3.UNIT_Y);
@@ -245,6 +260,7 @@ public class Scene extends ExampleBase {
 		}));
 
 		_logicalLayer.registerTrigger(new InputTrigger(new KeyPressedCondition(Key.TWO), new TriggerAction() {
+			@Override
 			public void perform(Canvas source, TwoInputStates inputState, double tpf) {
 				sceneCamera.setLocation(8, 0.5, 0);
 				sceneCamera.lookAt(new Vector3(0, 0.5, 0), Vector3.UNIT_Y);
@@ -252,6 +268,7 @@ public class Scene extends ExampleBase {
 		}));
 
 		_logicalLayer.registerTrigger(new InputTrigger(new KeyPressedCondition(Key.THREE), new TriggerAction() {
+			@Override
 			public void perform(Canvas source, TwoInputStates inputState, double tpf) {
 				sceneCamera.setLocation(0, 10, 0);
 				sceneCamera.lookAt(new Vector3(0, 0, 0), Vector3.UNIT_Y);
@@ -259,12 +276,14 @@ public class Scene extends ExampleBase {
 		}));
 
 		_logicalLayer.registerTrigger(new InputTrigger(new KeyPressedCondition(Key.FOUR), new TriggerAction() {
+			@Override
 			public void perform(Canvas source, TwoInputStates inputState, double tpf) {
 				resetCameraPosition();
 			}
 		}));
 
 		_logicalLayer.registerTrigger(new InputTrigger(new MouseMovedCondition(), new TriggerAction() {
+			@Override
 			public void perform(final Canvas source, final TwoInputStates inputStates, final double tpf) {
 				// Put together a pick ray
 				final Vector2 pos = Vector2.fetchTempInstance().set(inputStates.getCurrent().getMouseState().getX(),
