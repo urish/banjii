@@ -96,12 +96,19 @@ public class Scene extends ExampleBase {
 		_canvas.getCanvasRenderer().getCamera().lookAt(new Vector3(0, 0, 0), Vector3.UNIT_Y);
 	}
 
-	private Spatial createPlayer(String name) {
+	private Spatial createPlayer(String name, int index) {
 		Node player = new Node(name);
+
+		TextureState bodyTexture = new TextureState();
+		Texture t0 = TextureManager.load("textures/body-" + (index + 1) + ".png", Texture.MinificationFilter.BilinearNearestMipMap, true);
+		t0.setWrap(Texture.WrapMode.Repeat);
+		bodyTexture.setTexture(t0);
 
 		Capsule body = new Capsule("Body", 5, 5, 5, 0.35, 1.5);
 		body.setTranslation(0, 0.75, 0);
 		body.updateModelBound();
+		body.setRenderState(bodyTexture);
+
 		Sphere head = new Sphere("Head", 16, 16, 0.35);
 		Matrix3 rotation = new Matrix3();
 		rotation.fromAngles(Math.PI / 2, Math.PI, 0);
@@ -144,7 +151,7 @@ public class Scene extends ExampleBase {
 		playerHeadTexture.setTexture(t0);
 
 		for (Player player : PlayerManager.instance.getPlayers()) {
-			final Spatial playerObject = createPlayer(player.getName());
+			final Spatial playerObject = createPlayer(player.getName(), player.getId());
 			objects.attachChild(playerObject);
 			playerObject.setUserData(player);
 			player.addListener(new PlayerListener() {
