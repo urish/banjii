@@ -71,4 +71,28 @@ public class Player {
 	public void removeListener(PlayerListener listener) {
 		listeners.remove(listener);
 	}
+
+	@Override
+	public String toString() {
+		return "Player " + (getId() + 1);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (!(obj.getClass().isAssignableFrom(Player.class))) {
+			return false;
+		}
+		return ((Player) obj).getId() == getId();
+	}
+
+	@Override
+	public int hashCode() {
+		return 13 * id;
+	}
 }

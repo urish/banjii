@@ -1,7 +1,9 @@
 package org.urish.banjii.model;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import com.ardor3d.math.Matrix3;
@@ -12,22 +14,19 @@ import com.ardor3d.math.type.ReadOnlyVector3;
 public class Camera {
 	private final int id;
 	private final PositMatrix[] calibrationMatrices = new PositMatrix[2];
+	private final Map<Player, MarkerInfo> history = new HashMap<Player, MarkerInfo>(16);
 	private final Set<CameraListener> listeners = new HashSet<CameraListener>();
 
 	private boolean wasActive;
 	private boolean wasConnected;
 
 	private boolean calibrating;
-	private double scale;
 	private long lastConnectedTime;
 	private long lastActiveTime;
 
-
-
-
+	private double scale;
 	private ReadOnlyMatrix3 orientation = new Matrix3();
 	private ReadOnlyVector3 position = new Vector3();
-
 
 	public Camera(int id) {
 		super();
@@ -112,6 +111,18 @@ public class Camera {
 
 	public PositMatrix[] getCalibrationMatrices() {
 		return calibrationMatrices;
+	}
+
+	public void addMarkerHistory(Player player, MarkerInfo markerInfo) {
+		history.put(player, markerInfo);
+	}
+
+	public Map<Player, MarkerInfo> getHistory() {
+		return history;
+	}
+	
+	public void clearHistory() {
+		history.clear();
 	}
 
 	private void broadcastUpdate() {

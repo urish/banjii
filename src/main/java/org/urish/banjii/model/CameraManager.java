@@ -7,7 +7,9 @@ import java.util.logging.Logger;
 
 import com.ardor3d.math.Matrix3;
 import com.ardor3d.math.Transform;
+import com.ardor3d.math.Vector2;
 import com.ardor3d.math.Vector3;
+import com.ardor3d.math.type.ReadOnlyVector2;
 import com.ardor3d.math.type.ReadOnlyVector3;
 
 public class CameraManager {
@@ -89,8 +91,10 @@ public class CameraManager {
 		cameraTransform.setRotation(camera.getOrientation());
 		Vector3 point = new Vector3(posit.getTranslation());
 		cameraTransform.applyForward(point);
-		player.setX(point.getX());
-		player.setY(point.getZ());
+		ReadOnlyVector2 playerPosition = new Vector2(point.getX(), point.getZ());
+		camera.addMarkerHistory(player, new MarkerInfo(playerPosition, new Date()));
+		player.setX(playerPosition.getX());
+		player.setY(playerPosition.getY());
 	}
 
 	public List<Camera> getCameras() {
