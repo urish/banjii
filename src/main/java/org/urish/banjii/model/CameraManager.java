@@ -16,7 +16,7 @@ public class CameraManager {
 	public static final CameraManager instance = new CameraManager();
 
 	private static final Logger logger = Logger.getLogger(CameraManager.class.getName());
-	private static final int MAX_CAMERAS = 2;
+	private static final int MAX_CAMERAS = 4;
 	private static final double CALIBRATION_MARKER_DISTANCE = 0.16; /* Meters */
 
 	private final PlayerManager playerManager = PlayerManager.instance;
@@ -28,9 +28,13 @@ public class CameraManager {
 			Camera camera = new Camera(i);
 			camera.setPosition(new Vector3(0, 1, 2.5));
 			camera.setOrientation(new Matrix3(0, 0, 1, 0, 1, 0, 1, 0, 0));
-			camera.setScale(1 / 150.);
+			camera.setScale(1 / 200.);
 			cameras.add(camera);
 		}
+		cameras.get(1).setPosition(new Vector3(5, 1, 2.5));
+		cameras.get(1).setOrientation(new Matrix3(0, 0, -1, 0, 1, 0, -1, 0, 0));
+		cameras.get(2).setPosition(new Vector3(2.5, 1, 0));
+		cameras.get(2).setOrientation(new Matrix3(1, 0, 0, 0, 1, 0, 0, 0, 1));
 	}
 
 	public void updateCameraConnection(int cameraId)
@@ -95,6 +99,7 @@ public class CameraManager {
 		camera.addMarkerHistory(player, new MarkerInfo(playerPosition, new Date()));
 		player.setX(playerPosition.getX());
 		player.setY(playerPosition.getY());
+		player.setLastUpdated(new Date());
 	}
 
 	public List<Camera> getCameras() {

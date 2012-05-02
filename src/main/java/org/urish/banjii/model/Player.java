@@ -1,5 +1,6 @@
 package org.urish.banjii.model;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -8,6 +9,8 @@ public class Player {
 	private boolean visible;
 	private double x;
 	private double y;
+	private Date lastUpdated;
+	private boolean wasActive;
 
 	private final Set<PlayerListener> listeners = new HashSet<PlayerListener>();
 
@@ -55,6 +58,32 @@ public class Player {
 		if (this.y != y) {
 			this.y = y;
 			broadcastUpdate();
+		}
+	}
+
+	public Date getLastUpdated() {
+		return lastUpdated;
+	}
+
+	public void setLastUpdated(Date lastUpdated) {
+		this.lastUpdated = lastUpdated;
+		if (lastUpdated.equals(this.lastUpdated)) {
+			this.lastUpdated = lastUpdated;
+			broadcastUpdate();
+		}
+	}
+
+	public boolean isActive() {
+		if (lastUpdated == null) {
+			return false;
+		}
+		return (new Date().getTime() - lastUpdated.getTime()) < 500;
+	}
+
+	public void update() {
+		if (isActive() != wasActive) {
+			broadcastUpdate();
+			wasActive = isActive();
 		}
 	}
 

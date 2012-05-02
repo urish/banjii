@@ -59,7 +59,8 @@ public class Scene extends ExampleBase {
 	private final List<Spatial> players = new ArrayList<Spatial>();
 	private final List<Spatial> cameras = new ArrayList<Spatial>();
 	private MaterialState playerMaterial;
-	private MaterialState playerHighlightMaterial;
+	private MaterialState playerHoverMaterial;
+	private MaterialState playerSelectedMaterial;
 	private MaterialState playerActiveMaterial;
 	private MaterialState cameraMaterial;
 	private MaterialState cameraActiveMaterial;
@@ -67,7 +68,7 @@ public class Scene extends ExampleBase {
 	private TextureState playerHeadTexture;
 	private UserInterface userInterface;
 
-	private Spatial activePlayer;
+	private Spatial selectedPlayer;
 
 	private PlayerControl playerControl;
 
@@ -140,10 +141,12 @@ public class Scene extends ExampleBase {
 
 		playerMaterial = new MaterialState();
 		playerMaterial.setDiffuse(MaterialFace.FrontAndBack, ColorRGBA.WHITE);
-		playerHighlightMaterial = new MaterialState();
-		playerHighlightMaterial.setDiffuse(MaterialFace.FrontAndBack, ColorRGBA.YELLOW);
+		playerHoverMaterial = new MaterialState();
+		playerHoverMaterial.setDiffuse(MaterialFace.FrontAndBack, ColorRGBA.YELLOW);
+		playerSelectedMaterial = new MaterialState();
+		playerSelectedMaterial.setDiffuse(MaterialFace.FrontAndBack, ColorRGBA.RED);
 		playerActiveMaterial = new MaterialState();
-		playerActiveMaterial.setDiffuse(MaterialFace.FrontAndBack, ColorRGBA.RED);
+		playerActiveMaterial.setDiffuse(MaterialFace.FrontAndBack, ColorRGBA.GREEN);
 
 		playerHeadTexture = new TextureState();
 		Texture t0 = TextureManager.load("textures/head.jpg", Texture.MinificationFilter.BilinearNearestMipMap, false);
@@ -161,6 +164,13 @@ public class Scene extends ExampleBase {
 						objects.attachChild(playerObject);
 					} else {
 						playerObject.removeFromParent();
+					}
+					if (player.isActive()) {
+						playerObject.setRenderState(playerActiveMaterial);
+					} else if (playerObject.equals(selectedPlayer)) {
+						playerObject.setRenderState(playerSelectedMaterial);
+					} else {
+						playerObject.setRenderState(playerMaterial);						
 					}
 					Vector3 translation = new Vector3(playerObject.getTranslation());
 					translation.setX(player.getX() - 2.5);
@@ -181,7 +191,7 @@ public class Scene extends ExampleBase {
 		final Matrix3 cameraOrientationMatrix = new Matrix3(-1, 0, 0, 0, 0, 1, 0, -1, 0);
 
 		for (Camera camera : CameraManager.instance.getCameras()) {
-			final Pyramid cameraObject = new Pyramid("Camera 1", 0.2, 0.4);
+			final Pyramid cameraObject = new Pyramid("Camera " + camera.getId(), 0.2, 0.4);
 			cameraObject.setUserData(camera);
 			cameraObject.setRenderState(cameraMaterial);
 			cameraObject.updateModelBound();
@@ -324,10 +334,10 @@ public class Scene extends ExampleBase {
 				}
 				for (Spatial player : players) {
 					if (player.equals(highlightPlayer)) {
-						player.setRenderState(playerHighlightMaterial);
+						player.setRenderState(playerHoverMaterial);
 					} else {
-						if (player.equals(activePlayer)) {
-							player.setRenderState(playerActiveMaterial);
+						if (player.equals(selectedPlayer)) {
+							player.setRenderState(playerSelectedMaterial);
 						} else {
 							player.setRenderState(playerMaterial);
 						}
@@ -340,20 +350,20 @@ public class Scene extends ExampleBase {
 
 	@Override
 	protected void processPicks(final PrimitivePickResults pickResults) {
-		Spatial oldActivePlayer = activePlayer;
-		activePlayer = null;
+		Spatial oldActivePlayer = selectedPlayer;
+		selectedPlayer = null;
 		for (int i = 0; i < _pickResults.getNumber(); i++) {
 			final PickData pick = _pickResults.getPickData(i);
 			if (pick.getTarget() instanceof Spatial) {
 				Spatial pickParent = ((Spatial) pick.getTarget()).getParent();
 				if (players.contains(pickParent)) {
-					activePlayer = pickParent;
+					selectedPlayer = pickParent;
 					break;
 				}
 			}
 		}
 
-		if ((activePlayer == oldActivePlayer) || ((activePlayer != null) && activePlayer.equals(oldActivePlayer))) {
+		if ((selectedPlayer == oldActivePlayer) || ((selectedPlayer != null) && selectedPlayer.equals(oldActivePlayer))) {
 			return;
 		}
 		if (oldActivePlayer != null) {
@@ -362,12 +372,12 @@ public class Scene extends ExampleBase {
 			playerControl = null;
 		}
 
-		if (activePlayer != null) {
-			activePlayer.setRenderState(playerActiveMaterial);
+		if (selectedPlayer != null) {
+			selectedPlayer.setRenderState(playerSelectedMaterial);
 			if (oldActivePlayer == null) {
 				_logicalLayer.deregisterTrigger(_controlHandle.getKeyTrigger());
 			}
-			playerControl = new PlayerControl(_logicalLayer, (Player) activePlayer.getUserData());
+			playerControl = new PlayerControl(_logicalLayer, (Player) selectedPlayer.getUserData());
 		} else {
 			if (oldActivePlayer != null) {
 				_logicalLayer.registerTrigger(_controlHandle.getKeyTrigger());
@@ -380,6 +390,10 @@ public class Scene extends ExampleBase {
 		for (Spatial cameraObject : cameras) {
 			Camera camera = (Camera) cameraObject.getUserData();
 			camera.update();
+		}
+		for (Spatial playerObject : players) {
+			Player player = (Player) playerObject.getUserData();
+			player.update();
 		}
 		userInterface.update(timer);
 	}
