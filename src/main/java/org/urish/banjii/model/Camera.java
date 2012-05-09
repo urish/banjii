@@ -1,9 +1,15 @@
 package org.urish.banjii.model;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 
 import com.ardor3d.math.Matrix3;
@@ -12,9 +18,10 @@ import com.ardor3d.math.type.ReadOnlyMatrix3;
 import com.ardor3d.math.type.ReadOnlyVector3;
 
 public class Camera {
+	private static int QUEUE_SIZE = 5;
 	private final int id;
 	private final PositMatrix[] calibrationMatrices = new PositMatrix[2];
-	private final Map<Player, MarkerInfo> history = new HashMap<Player, MarkerInfo>(16);
+	private final Map<Player, Queue<MarkerInfo>> history = new HashMap<Player, Queue<MarkerInfo>>(4); // a map of each player to his position history as captured by this camera
 	private final Set<CameraListener> listeners = new HashSet<CameraListener>();
 
 	private boolean wasActive;
@@ -114,10 +121,48 @@ public class Camera {
 	}
 
 	public void addMarkerHistory(Player player, MarkerInfo markerInfo) {
-		history.put(player, markerInfo);
+		Queue<MarkerInfo> playerMarkerHistory = history.get(player);
+		// handle first detection
+		if (playerMarkerHistory == null)
+		{
+			playerMarkerHistory = new LinkedList<MarkerInfo>();
+		}
+		else
+		{
+			// marker history queue just starting to fill up 
+			if (playerMarkerHistory.size() < QUEUE_SIZE)
+			{
+				playerMarkerHistory.add(markerInfo);
+			}
+			else
+			{
+				playerMarkerHistory.poll();
+				playerMarkerHistory.add(markerInfo);
+			}
+		}
+		history.put(player, playerMarkerHistory);
+	}
+	
+	public void printPlayerMarkerHistory(Player player)
+	{
+		Queue<MarkerInfo> playerMarkerHistory = history.get(player);
+		if (playerMarkerHistory != null)
+		{
+			Iterator<MarkerInfo> it=playerMarkerHistory.iterator();
+			System.out.println("Printing history queue for player id : "+ player.getId());
+	        System.out.println("Size of History Queue : "+ playerMarkerHistory.size());
+	        while(it.hasNext())
+	        {
+	            MarkerInfo iteratorValue= it.next();
+	            System.out.println("TIME = " + iteratorValue.getTimestamp());
+	            System.out.println("X = " + iteratorValue.getPosition().getX());
+	            System.out.println("Y = " + iteratorValue.getPosition().getY());
+	        }
+	        System.out.println("====================================================");
+		}
 	}
 
-	public Map<Player, MarkerInfo> getHistory() {
+	public Map<Player, Queue<MarkerInfo>> getHistory() {
 		return history;
 	}
 	

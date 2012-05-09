@@ -6,7 +6,7 @@ import java.util.List;
 public class PlayerManager {
 	public static final PlayerManager instance = new PlayerManager();
 
-	private static final int MAX_PLAYERS = 8;
+	private static final int MAX_PLAYERS = 4;
 
 	private final List<Player> players = new ArrayList<Player>();
 

@@ -12,6 +12,7 @@ import org.urish.banjii.model.Player;
 import org.urish.banjii.model.PlayerListener;
 import org.urish.banjii.model.PlayerManager;
 
+import com.ardor3d.extension.ui.Orientation;
 import com.ardor3d.extension.ui.UIButton;
 import com.ardor3d.extension.ui.UICheckBox;
 import com.ardor3d.extension.ui.UIComponent;
@@ -19,6 +20,7 @@ import com.ardor3d.extension.ui.UIFrame;
 import com.ardor3d.extension.ui.UIHud;
 import com.ardor3d.extension.ui.UILabel;
 import com.ardor3d.extension.ui.UIPanel;
+import com.ardor3d.extension.ui.UISlider;
 import com.ardor3d.extension.ui.UITabbedPane;
 import com.ardor3d.extension.ui.UITabbedPane.TabPlacement;
 import com.ardor3d.extension.ui.event.ActionEvent;
@@ -30,6 +32,7 @@ import com.ardor3d.framework.Canvas;
 import com.ardor3d.input.PhysicalLayer;
 import com.ardor3d.input.logical.LogicalLayer;
 import com.ardor3d.math.ColorRGBA;
+import com.ardor3d.math.Vector3;
 import com.ardor3d.math.type.ReadOnlyColorRGBA;
 import com.ardor3d.math.type.ReadOnlyVector3;
 import com.ardor3d.renderer.Renderer;
@@ -44,6 +47,8 @@ public class UserInterface {
 	private final CameraManager cameraManager = CameraManager.instance;
 	private final Set<Camera> updatedCameras = new HashSet<Camera>();
 	private final Map<Camera, CameraListener> cameraListeners = new HashMap<Camera, CameraListener>();
+	private final Map<Integer, UIPanel> cameraCalibarationPanels = new HashMap<Integer, UIPanel>();
+	
 
 	private UIHud hud;
 	private UIFrame frame;
@@ -110,7 +115,7 @@ public class UserInterface {
 		}
 		return playersPanel;
 	}
-
+	
 	private UIComponent makeCamerasPanel() {
 		final UIPanel camerasPanel = new UIPanel(new GridLayout());
 		for (final Camera camera : cameraManager.getCameras()) {
@@ -119,11 +124,75 @@ public class UserInterface {
 			activeLabel.setForegroundColor(ColorRGBA.RED);
 			final UIButton calibrateButton = new UIButton("Calibrate");
 			final UILabel infoLabel = new UILabel("[]");
+			final int currentCameraId = camera.getId();
 			calibrateButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent event) {
-					cameraManager.startCalibration(camera);
+					for (UIPanel cameraCalibarationPanel : cameraCalibarationPanels.values())
+					{				
+						cameraCalibarationPanel.setVisible(false);
+					}
+					cameraCalibarationPanels.get(currentCameraId).setVisible(true);
 				}
 			});
+			
+			
+			
+			final UIPanel calibarationPanel = new UIPanel();
+			calibarationPanel.setLayoutData(GridLayoutData.WrapAndGrow);
+			calibarationPanel.setVisible(false);
+			
+			// camera position and orientation sliders
+			final UILabel positionLabel = new UILabel("Position");
+			final UISlider sliderXposition = new UISlider(Orientation.Horizontal, 0, 100, 0);
+			final UISlider sliderYposition = new UISlider(Orientation.Horizontal, 0, 100, 0);
+			final UISlider sliderZposition = new UISlider(Orientation.Horizontal, 0, 100, 0);
+			sliderXposition.setContentWidth(50);
+			sliderYposition.setContentWidth(50);
+			sliderZposition.setContentWidth(50);
+			UIButton savePosition = new UIButton("Save Position");
+			savePosition.addActionListener(new ActionListener() {				
+				@Override
+				public void actionPerformed(ActionEvent event) {
+					Vector3 positionValues = new Vector3();
+					positionValues.setX(sliderXposition.getValue());
+					positionValues.setY(sliderYposition.getValue());
+					positionValues.setZ(sliderZposition.getValue());
+					cameraManager.updateCameraPosition(currentCameraId, positionValues);
+				}
+			});
+			
+			
+			
+			final UILabel orientationLabel = new UILabel("Orientation");
+			final UISlider sliderXorientation = new UISlider(Orientation.Horizontal, 0, 100, 0);
+			final UISlider sliderYorientation = new UISlider(Orientation.Horizontal, 0, 100, 0);
+			final UISlider sliderZorientation = new UISlider(Orientation.Horizontal, 0, 100, 0);
+			UIButton saveOrientation = new UIButton("Save Orientation");
+			saveOrientation.addActionListener(new ActionListener() {				
+				@Override
+				public void actionPerformed(ActionEvent event) {
+					Vector3 positionValues = new Vector3();
+					positionValues.setX(sliderXposition.getValue());
+					positionValues.setY(sliderYposition.getValue());
+					positionValues.setZ(sliderZposition.getValue());
+					cameraManager.updateCameraOrientation(currentCameraId, positionValues);
+				}
+			});
+			
+			calibarationPanel.add(positionLabel);
+			calibarationPanel.add(sliderXposition);
+			calibarationPanel.add(sliderYposition);
+			calibarationPanel.add(sliderZposition);
+			calibarationPanel.add(savePosition);
+			
+			calibarationPanel.add(orientationLabel);
+			calibarationPanel.add(sliderXorientation);
+			calibarationPanel.add(sliderYorientation);
+			calibarationPanel.add(sliderZorientation);
+			calibarationPanel.add(saveOrientation);
+			
+			cameraCalibarationPanels.put(currentCameraId, calibarationPanel);
+
 			camerasPanel.add(cameraLabel);
 			camerasPanel.add(activeLabel);
 			camerasPanel.add(calibrateButton);
@@ -156,6 +225,13 @@ public class UserInterface {
 				}
 			});
 		}
+		
+		for (UIPanel cameraCalibarationPanel : cameraCalibarationPanels.values())
+		{				
+			camerasPanel.add(cameraCalibarationPanel);
+		}
+		
+		
 		return camerasPanel;
 	}
 

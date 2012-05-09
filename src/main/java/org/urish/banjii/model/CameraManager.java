@@ -2,7 +2,9 @@ package org.urish.banjii.model;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Queue;
 import java.util.logging.Logger;
 
 import com.ardor3d.math.Matrix3;
@@ -15,7 +17,8 @@ import com.ardor3d.math.type.ReadOnlyVector3;
 public class CameraManager {
 	public static final CameraManager instance = new CameraManager();
 
-	private static final Logger logger = Logger.getLogger(CameraManager.class.getName());
+	private static final Logger logger = Logger.getLogger(CameraManager.class
+			.getName());
 	private static final int MAX_CAMERAS = 4;
 	private static final double CALIBRATION_MARKER_DISTANCE = 0.16; /* Meters */
 
@@ -37,18 +40,29 @@ public class CameraManager {
 		cameras.get(2).setOrientation(new Matrix3(1, 0, 0, 0, 1, 0, 0, 0, 1));
 	}
 
-	public void updateCameraConnection(int cameraId)
-	{
-		logger.info("Camera " + cameraId + " found no markers but is still connected");
+	public void updateCameraPosition(int cameraId, Vector3 position) {
+		int i =7;
+		//cameras.get(cameraId).setPosition(position);
+	}
+
+	public void updateCameraOrientation(int cameraId, Vector3 orientation) {
+		int i =7;
+		//cameras.get(cameraId).setOrientation(orientation);
+	}
+
+	public void updateCameraConnection(int cameraId) {
+		logger.info("Camera " + cameraId
+				+ " found no markers but is still connected");
 		Camera camera = cameras.get(cameraId);
 		if (camera != null) {
 			camera.setLastConnectedTime(new Date().getTime());
 		}
 	}
-	
+
 	public void onMarkerMovement(int cameraId, int markerId, double[] matrix) {
 		PositMatrix posit = PositMatrix.load(matrix);
-		logger.info("Camera " + cameraId + " detected marker " + markerId + " at " + posit);
+		logger.info("Camera " + cameraId + " detected marker " + markerId
+				+ " at " + posit);
 		Camera camera = cameras.get(cameraId);
 		Player player = playerManager.getPlayers().get(markerId);
 
@@ -73,12 +87,14 @@ public class CameraManager {
 			}
 			if (matrices[0] != null && (matrices[1] != null)) {
 				marker1Position = new Vector3(matrices[0].getTranslation());
-				distance = matrices[0].getTranslation().distance(matrices[1].getTranslation());
+				distance = matrices[0].getTranslation().distance(
+						matrices[1].getTranslation());
 			}
 		}
 		if (marker1Position != null) {
 			double scale = CALIBRATION_MARKER_DISTANCE / distance;
-			logger.info("Camera calibrated, distance scale: " + scale + ", position: " + marker1Position);
+			logger.info("Camera calibrated, distance scale: " + scale
+					+ ", position: " + marker1Position);
 			Vector3 cameraPosition = new Vector3(marker1Position);
 			cameraPosition.multiplyLocal(scale);
 			cameraPosition.addLocal(new Vector3(2.5, 2, 2.5));
@@ -96,7 +112,9 @@ public class CameraManager {
 		Vector3 point = new Vector3(posit.getTranslation());
 		cameraTransform.applyForward(point);
 		ReadOnlyVector2 playerPosition = new Vector2(point.getX(), point.getZ());
-		camera.addMarkerHistory(player, new MarkerInfo(playerPosition, new Date()));
+		MarkerInfo detectedPosition = new MarkerInfo(playerPosition, new Date());
+		camera.addMarkerHistory(player, detectedPosition);
+		camera.printPlayerMarkerHistory(player);
 		player.setX(playerPosition.getX());
 		player.setY(playerPosition.getY());
 		player.setLastUpdated(new Date());
@@ -113,5 +131,108 @@ public class CameraManager {
 			matrices[0] = null;
 			matrices[1] = null;
 		}
+	}
+
+	// maximal time difference, in milliseconds, in which to take a marker
+	// recording into account
+	final static long MAXIMAL_TIME_DIFF = 500;
+
+	/**
+	 * 
+	 * Calculates a player's position by taking into account all cameras that
+	 * detected it within the MAXIMAL_TIME_DIFF timewindow, using a weighted
+	 * average algorithm.
+	 * 
+	 * @param player
+	 *            the player for which we are calculating the weighted avergae
+	 *            position
+	 * 
+	 * */
+	public ReadOnlyVector2 getWeightedAveragePosition(Player player) {
+
+		final long currentTime = new Date().getTime();
+
+		double allCamerasAccumulatingX = 0;
+		double allCamerasAccumulatingY = 0;
+		double allCamerasWeight = 0;
+
+		for (Camera camera : cameras) {
+			double singleCameraWeightedAvgX = 0;
+			double singleCameraWeightedAvgY = 0;
+			double singleCameraWeight = 0;
+
+			// fetch a single camera's history for a single player
+			Queue<MarkerInfo> markerInfoQueue = camera.getHistory().get(player);
+			if (markerInfoQueue != null) {
+				// calculate the camera's weight - based on the "freshness" of
+				// its marker timestamp and other data
+				singleCameraWeight = calculateCameraWeight(
+						markerInfoQueue.peek(), currentTime);
+
+				Iterator<MarkerInfo> it = markerInfoQueue.iterator();
+				double accumulatingX = 0;
+				double accumulatingY = 0;
+				double weightCounter = 0;
+				while (it.hasNext()) {
+					MarkerInfo iteratorValue = it.next();
+					// work only with marker info instances which are "fresh"
+					// enough
+					double timeDiff = currentTime
+							- iteratorValue.getTimestamp().getTime();
+					if (timeDiff < MAXIMAL_TIME_DIFF) {
+						double weight = MAXIMAL_TIME_DIFF - timeDiff;
+						accumulatingX += iteratorValue.getPosition().getX()
+								* weight;
+						accumulatingY += iteratorValue.getPosition().getY()
+								* weight;
+						weightCounter += weight;
+					} else {
+						// if we passed the allowed time difference, we don't
+						// care about the older results
+						break;
+					}
+				}
+
+				singleCameraWeightedAvgX = accumulatingX / weightCounter;
+				singleCameraWeightedAvgY = accumulatingY / weightCounter;
+
+				System.out.println("weighted X for camera " + camera.getId()
+						+ "= " + singleCameraWeightedAvgX);
+				System.out.println("weighted Y for camera " + camera.getId()
+						+ "= " + singleCameraWeightedAvgY);
+				System.out
+						.println("====================================================");
+			}
+
+			allCamerasAccumulatingX += singleCameraWeightedAvgX
+					* singleCameraWeight;
+			allCamerasAccumulatingY += singleCameraWeightedAvgY
+					* singleCameraWeight;
+			allCamerasWeight += singleCameraWeight;
+		}
+
+		double allCamerasWeightedAvgX = allCamerasAccumulatingX
+				/ allCamerasWeight;
+		double allCamerasWeightedAvgY = allCamerasAccumulatingY
+				/ allCamerasWeight;
+
+		System.out.println("weighted X from ALL cameras = "
+				+ allCamerasWeightedAvgX);
+		System.out.println("weighted Y from ALL cameras = "
+				+ allCamerasWeightedAvgY);
+		System.out
+				.println("====================================================");
+
+		ReadOnlyVector2 weightedPlayerPosition = new Vector2(
+				allCamerasWeightedAvgX, allCamerasWeightedAvgY);
+
+		return weightedPlayerPosition;
+	}
+
+	private double calculateCameraWeight(MarkerInfo freshestMarker,
+			long currentTime) {
+		double timeDiff = currentTime - freshestMarker.getTimestamp().getTime();
+		double weight = MAXIMAL_TIME_DIFF - timeDiff;
+		return weight;
 	}
 }
