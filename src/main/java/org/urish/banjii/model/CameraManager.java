@@ -1,6 +1,8 @@
 package org.urish.banjii.model;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -27,24 +29,23 @@ public class CameraManager {
 
 	private final PlayerManager playerManager = PlayerManager.instance;
 	private final List<Camera> cameras = new ArrayList<Camera>();
+	private final static String CAMERA_PROPERTIES_FILE_PATH = "c:\banjii.camera.properties";
 
 	private Properties cameraProperties;
 
 	private CameraManager() {
 		super();
 		cameraProperties = new Properties();
-		String filePath = "";
-		try
-		{
-			cameraProperties.load(new FileInputStream(filePath));
-		}
-		catch (IOException e)
-		{
-			System.out.println("Could not open camera properties file at: " + filePath);
+		try {
+			cameraProperties.load(new FileInputStream(CAMERA_PROPERTIES_FILE_PATH));
+		} catch (IOException e) {
+			System.out.println("Could not load camera properties file at: "
+					+ CAMERA_PROPERTIES_FILE_PATH);
 		}
 		for (int i = 0; i < MAX_CAMERAS; i++) {
 			Camera camera = new Camera(i);
-			Vector3 cameraPosition = stringToVector(cameraProperties.getProperty("camera" + i + "position", "0,0,0"));
+			Vector3 cameraPosition = stringToVector(cameraProperties
+					.getProperty("camera" + i + "position", "0,0,0"));
 			camera.setPosition(cameraPosition);
 			camera.setPosition(new Vector3(0, 1, 2.5));
 			camera.setOrientation(new Matrix3(0, 0, 1, 0, 1, 0, 1, 0, 0));
@@ -56,32 +57,28 @@ public class CameraManager {
 		cameras.get(2).setPosition(new Vector3(2.5, 1, 0));
 		cameras.get(2).setOrientation(new Matrix3(1, 0, 0, 0, 1, 0, 0, 0, 1));
 	}
-	
-	private Vector3 stringToVector(String vectorString)
-	{
+
+	private Vector3 stringToVector(String vectorString) {
 		String[] coordinates = vectorString.split(",");
 		Vector3 vector = new Vector3();
 		vector.setX(Double.valueOf(coordinates[0]));
 		vector.setY(Double.valueOf(coordinates[1]));
 		vector.setZ(Double.valueOf(coordinates[2]));
-		
+
 		return vector;
 	}
-	
-	private String vectorToString(Vector3 vector)
-	{
+
+	private String vectorToString(Vector3 vector) {
 		StringBuffer vectorString = new StringBuffer();
-		vectorString.append(vector.getX());
-		vectorString.append(",");
-		vectorString.append(vector.getY());
-		vectorString.append(",");
-		vectorString.append(vector.getZ());
-		
+		vectorString.append(vector.getX() + "," + vector.getY() + ","
+				+ vector.getZ());
+
 		return vectorString.toString();
 	}
 
 	/**
 	 * the scale of the sliders runs between [0...100]
+	 * 
 	 * @param camera
 	 * @param input
 	 */
@@ -89,26 +86,31 @@ public class CameraManager {
 		double lengthProportion = 100 / RealWorldParameters.ROOM_LENGTH;
 		double widthProportion = 100 / RealWorldParameters.ROOM_WIDTH;
 		double heightProportion = 100 / RealWorldParameters.ROOM_HEIGHT;
-		
+
 		Vector3 position = new Vector3();
 		position.setX(input.getX() * widthProportion);
 		position.setY(input.getY() * heightProportion);
 		position.setZ(input.getZ() * lengthProportion);
-		
+
+		cameraProperties.setProperty("camera"+camera.getId()+"position", vectorToString(position));
+		try {
+			cameraProperties.save(new FileOutputStream(CAMERA_PROPERTIES_FILE_PATH), null);
+		} catch (FileNotFoundException e) {
+			System.out.println("Could not save camera properties file at: "
+					+ CAMERA_PROPERTIES_FILE_PATH);
+		}
 		camera.setPosition(position);
-		
-		
-		
-		//cameras.get(cameraId).setPosition(position);
+
 	}
 
 	/**
 	 * the scale of the slider runs between [0...360]
+	 * 
 	 * @param camera
 	 * @param orientation
 	 */
 	public void updateCameraOrientation(Camera camera, Vector3 orientation) {
-		
+
 	}
 
 	public void updateCameraConnection(int cameraId) {
