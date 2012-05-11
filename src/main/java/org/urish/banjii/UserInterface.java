@@ -119,25 +119,25 @@ public class UserInterface {
 	private UIComponent makeCamerasPanel() {
 		final UIPanel camerasPanel = new UIPanel(new GridLayout());
 		for (final Camera camera : cameraManager.getCameras()) {
+			
 			final UILabel cameraLabel = new UILabel("Cam" + camera.getId());
 			final UILabel activeLabel = new UILabel("off");
 			activeLabel.setForegroundColor(ColorRGBA.RED);
 			final UIButton calibrateButton = new UIButton("Calibrate");
 			final UILabel infoLabel = new UILabel("[]");
-			final int currentCameraId = camera.getId();
 			calibrateButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent event) {
 					for (UIPanel cameraCalibarationPanel : cameraCalibarationPanels.values())
 					{				
 						cameraCalibarationPanel.setVisible(false);
 					}
-					cameraCalibarationPanels.get(currentCameraId).setVisible(true);
+					cameraCalibarationPanels.get(camera.getId()).setVisible(true);
 				}
 			});
 			
 			
 			
-			final UIPanel calibarationPanel = new UIPanel();
+			final UIPanel calibarationPanel = new UIPanel(new GridLayout());
 			calibarationPanel.setLayoutData(GridLayoutData.WrapAndGrow);
 			calibarationPanel.setVisible(false);
 			
@@ -146,9 +146,9 @@ public class UserInterface {
 			final UISlider sliderXposition = new UISlider(Orientation.Horizontal, 0, 100, 0);
 			final UISlider sliderYposition = new UISlider(Orientation.Horizontal, 0, 100, 0);
 			final UISlider sliderZposition = new UISlider(Orientation.Horizontal, 0, 100, 0);
-			sliderXposition.setContentWidth(50);
-			sliderYposition.setContentWidth(50);
-			sliderZposition.setContentWidth(50);
+			sliderXposition.setContentWidth(80);
+			sliderYposition.setContentWidth(80);
+			sliderZposition.setContentWidth(80);
 			UIButton savePosition = new UIButton("Save Position");
 			savePosition.addActionListener(new ActionListener() {				
 				@Override
@@ -157,16 +157,18 @@ public class UserInterface {
 					positionValues.setX(sliderXposition.getValue());
 					positionValues.setY(sliderYposition.getValue());
 					positionValues.setZ(sliderZposition.getValue());
-					cameraManager.updateCameraPosition(currentCameraId, positionValues);
+					cameraManager.updateCameraPosition(camera, positionValues);
 				}
 			});
-			
-			
+			savePosition.setLayoutData(GridLayoutData.WrapAndGrow);
 			
 			final UILabel orientationLabel = new UILabel("Orientation");
-			final UISlider sliderXorientation = new UISlider(Orientation.Horizontal, 0, 100, 0);
-			final UISlider sliderYorientation = new UISlider(Orientation.Horizontal, 0, 100, 0);
-			final UISlider sliderZorientation = new UISlider(Orientation.Horizontal, 0, 100, 0);
+			final UISlider sliderXorientation = new UISlider(Orientation.Horizontal, 0, 360, 0);
+			final UISlider sliderYorientation = new UISlider(Orientation.Horizontal, 0, 360, 0);
+			final UISlider sliderZorientation = new UISlider(Orientation.Horizontal, 0, 360, 0);
+			sliderXorientation.setContentWidth(80);
+			sliderYorientation.setContentWidth(80);
+			sliderZorientation.setContentWidth(80);
 			UIButton saveOrientation = new UIButton("Save Orientation");
 			saveOrientation.addActionListener(new ActionListener() {				
 				@Override
@@ -175,9 +177,10 @@ public class UserInterface {
 					positionValues.setX(sliderXposition.getValue());
 					positionValues.setY(sliderYposition.getValue());
 					positionValues.setZ(sliderZposition.getValue());
-					cameraManager.updateCameraOrientation(currentCameraId, positionValues);
+					cameraManager.updateCameraOrientation(camera, positionValues);
 				}
 			});
+			saveOrientation.setLayoutData(GridLayoutData.WrapAndGrow);
 			
 			calibarationPanel.add(positionLabel);
 			calibarationPanel.add(sliderXposition);
@@ -191,7 +194,7 @@ public class UserInterface {
 			calibarationPanel.add(sliderZorientation);
 			calibarationPanel.add(saveOrientation);
 			
-			cameraCalibarationPanels.put(currentCameraId, calibarationPanel);
+			cameraCalibarationPanels.put(camera.getId(), calibarationPanel);
 
 			camerasPanel.add(cameraLabel);
 			camerasPanel.add(activeLabel);

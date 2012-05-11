@@ -1,9 +1,12 @@
 package org.urish.banjii.model;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Properties;
 import java.util.Queue;
 import java.util.logging.Logger;
 
@@ -25,10 +28,24 @@ public class CameraManager {
 	private final PlayerManager playerManager = PlayerManager.instance;
 	private final List<Camera> cameras = new ArrayList<Camera>();
 
+	private Properties cameraProperties;
+
 	private CameraManager() {
 		super();
+		cameraProperties = new Properties();
+		String filePath = "";
+		try
+		{
+			cameraProperties.load(new FileInputStream(filePath));
+		}
+		catch (IOException e)
+		{
+			System.out.println("Could not open camera properties file at: " + filePath);
+		}
 		for (int i = 0; i < MAX_CAMERAS; i++) {
 			Camera camera = new Camera(i);
+			Vector3 cameraPosition = stringToVector(cameraProperties.getProperty("camera" + i + "position", "0,0,0"));
+			camera.setPosition(cameraPosition);
 			camera.setPosition(new Vector3(0, 1, 2.5));
 			camera.setOrientation(new Matrix3(0, 0, 1, 0, 1, 0, 1, 0, 0));
 			camera.setScale(1 / 200.);
@@ -39,15 +56,59 @@ public class CameraManager {
 		cameras.get(2).setPosition(new Vector3(2.5, 1, 0));
 		cameras.get(2).setOrientation(new Matrix3(1, 0, 0, 0, 1, 0, 0, 0, 1));
 	}
+	
+	private Vector3 stringToVector(String vectorString)
+	{
+		String[] coordinates = vectorString.split(",");
+		Vector3 vector = new Vector3();
+		vector.setX(Double.valueOf(coordinates[0]));
+		vector.setY(Double.valueOf(coordinates[1]));
+		vector.setZ(Double.valueOf(coordinates[2]));
+		
+		return vector;
+	}
+	
+	private String vectorToString(Vector3 vector)
+	{
+		StringBuffer vectorString = new StringBuffer();
+		vectorString.append(vector.getX());
+		vectorString.append(",");
+		vectorString.append(vector.getY());
+		vectorString.append(",");
+		vectorString.append(vector.getZ());
+		
+		return vectorString.toString();
+	}
 
-	public void updateCameraPosition(int cameraId, Vector3 position) {
-		int i =7;
+	/**
+	 * the scale of the sliders runs between [0...100]
+	 * @param camera
+	 * @param input
+	 */
+	public void updateCameraPosition(Camera camera, Vector3 input) {
+		double lengthProportion = 100 / RealWorldParameters.ROOM_LENGTH;
+		double widthProportion = 100 / RealWorldParameters.ROOM_WIDTH;
+		double heightProportion = 100 / RealWorldParameters.ROOM_HEIGHT;
+		
+		Vector3 position = new Vector3();
+		position.setX(input.getX() * widthProportion);
+		position.setY(input.getY() * heightProportion);
+		position.setZ(input.getZ() * lengthProportion);
+		
+		camera.setPosition(position);
+		
+		
+		
 		//cameras.get(cameraId).setPosition(position);
 	}
 
-	public void updateCameraOrientation(int cameraId, Vector3 orientation) {
-		int i =7;
-		//cameras.get(cameraId).setOrientation(orientation);
+	/**
+	 * the scale of the slider runs between [0...360]
+	 * @param camera
+	 * @param orientation
+	 */
+	public void updateCameraOrientation(Camera camera, Vector3 orientation) {
+		
 	}
 
 	public void updateCameraConnection(int cameraId) {
