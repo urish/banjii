@@ -23,7 +23,7 @@ public class CameraManager {
 	public static final CameraManager instance = new CameraManager();
 
 	private static final Logger logger = Logger.getLogger(CameraManager.class.getName());
-	private static final int MAX_CAMERAS = 4;
+	private static final int MAX_CAMERAS = 8;
 	private static final double CALIBRATION_MARKER_DISTANCE = 0.16; /* Meters */
 
 	private final PlayerManager playerManager = PlayerManager.instance;
