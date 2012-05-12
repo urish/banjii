@@ -3,7 +3,9 @@ package org.urish.banjii.connector;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,6 +45,7 @@ public class CintieConnector implements PlayerListener, Runnable {
 		while (true) {
 			String updateUrl = null;
 			String updateContent = null;
+			List<Player> changedPlayers = null;
 			synchronized (pendingUpdates) {
 				try {
 					while (pendingUpdates.isEmpty()) {
@@ -52,21 +55,23 @@ public class CintieConnector implements PlayerListener, Runnable {
 					logger.log(Level.SEVERE, "Cintie Connector Interrupted", e);
 					return;
 				}
-				Player playerToUpdate = pendingUpdates.iterator().next();
+				changedPlayers = new ArrayList<Player>(pendingUpdates);
+				pendingUpdates.clear();
+			}
+			for (Player playerToUpdate : changedPlayers) {
 				updateUrl = "/app/pawns/" + (playerToUpdate.getId() + 1);
 				updateContent = "x=" + (playerToUpdate.getX() / 5) + "&y=" + (playerToUpdate.getY() / 5) + "&on="
 						+ playerToUpdate.isVisible();
-				pendingUpdates.remove(playerToUpdate);
-			}
-			try {
-				URLConnection connection = new URL(cintieServer + updateUrl).openConnection();
-				connection.setDoOutput(true);
-				connection.getOutputStream().write(updateContent.getBytes("utf-8"));
-				connection.connect();
-				connection.getInputStream();
-			} catch (IOException e) {
-				if (!e.getMessage().contains("500 for URL")) {
-					logger.log(Level.WARNING, "Cintie Connection Failed", e);
+				try {
+					URLConnection connection = new URL(cintieServer + updateUrl).openConnection();
+					connection.setDoOutput(true);
+					connection.getOutputStream().write(updateContent.getBytes("utf-8"));
+					connection.connect();
+					connection.getInputStream();
+				} catch (IOException e) {
+					if (!e.getMessage().contains("500 for URL")) {
+						logger.log(Level.WARNING, "Cintie Connection Failed", e);
+					}
 				}
 			}
 		}
