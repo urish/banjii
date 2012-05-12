@@ -17,14 +17,12 @@ import com.ardor3d.math.type.ReadOnlyVector3;
 public class Camera {
 	private static int QUEUE_SIZE = 5;
 	private final int id;
-	private final PositMatrix[] calibrationMatrices = new PositMatrix[2];
 	private final Map<Player, Queue<MarkerInfo>> history = new HashMap<Player, Queue<MarkerInfo>>(4); // a map of each player to his position history as captured by this camera
 	private final Set<CameraListener> listeners = new HashSet<CameraListener>();
 
 	private boolean wasActive;
 	private boolean wasConnected;
 
-	private boolean calibrating;
 	private long lastConnectedTime;
 	private long lastActiveTime;
 
@@ -48,17 +46,6 @@ public class Camera {
 
 	public boolean isConnected() {
 		return isActive() || (new Date().getTime() - getLastConnectedTime()) < 1000;
-	}
-
-	public boolean isCalibrating() {
-		return calibrating;
-	}
-
-	public void setCalibrating(boolean calibrating) {
-		if (this.calibrating != calibrating) {
-			this.calibrating = calibrating;
-			broadcastUpdate();
-		}
 	}
 
 	public double getScale() {
@@ -111,10 +98,6 @@ public class Camera {
 			this.orientation = new Matrix3(orientation);
 			broadcastUpdate();
 		}
-	}
-
-	public PositMatrix[] getCalibrationMatrices() {
-		return calibrationMatrices;
 	}
 
 	public void addMarkerHistory(Player player, MarkerInfo markerInfo) {

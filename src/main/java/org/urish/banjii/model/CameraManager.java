@@ -24,7 +24,6 @@ public class CameraManager {
 
 	private static final Logger logger = Logger.getLogger(CameraManager.class.getName());
 	private static final int MAX_CAMERAS = 8;
-	private static final double CALIBRATION_MARKER_DISTANCE = 0.16; /* Meters */
 
 	private final PlayerManager playerManager = PlayerManager.instance;
 	private final List<Camera> cameras = new ArrayList<Camera>();
@@ -128,38 +127,9 @@ public class CameraManager {
 
 		if (camera != null) {
 			camera.setLastActiveTime(new Date().getTime());
-			if (camera.isCalibrating()) {
-				calibrateCamera(camera, markerId, posit);
-			} else if (player != null) {
-				updateCamera(camera, player, posit);
-			}
+			updateCamera(camera, player, posit);
 		}
 
-	}
-
-	private void calibrateCamera(Camera camera, int markerId, PositMatrix posit) {
-		PositMatrix[] matrices = camera.getCalibrationMatrices();
-		double distance = Double.NaN;
-		ReadOnlyVector3 marker1Position = null;
-		synchronized (matrices) {
-			if ((markerId >= 0) && (markerId <= 1)) {
-				matrices[markerId] = posit;
-			}
-			if (matrices[0] != null && (matrices[1] != null)) {
-				marker1Position = new Vector3(matrices[0].getTranslation());
-				distance = matrices[0].getTranslation().distance(matrices[1].getTranslation());
-			}
-		}
-		if (marker1Position != null) {
-			double scale = CALIBRATION_MARKER_DISTANCE / distance;
-			logger.info("Camera calibrated, distance scale: " + scale + ", position: " + marker1Position);
-			Vector3 cameraPosition = new Vector3(marker1Position);
-			cameraPosition.multiplyLocal(scale);
-			cameraPosition.addLocal(new Vector3(2.5, 2, 2.5));
-			camera.setScale(scale);
-			camera.setPosition(cameraPosition);
-			camera.setCalibrating(false);
-		}
 	}
 
 	private void updateCamera(Camera camera, Player player, PositMatrix posit) {
@@ -180,15 +150,6 @@ public class CameraManager {
 
 	public List<Camera> getCameras() {
 		return cameras;
-	}
-
-	public void startCalibration(Camera camera) {
-		camera.setCalibrating(true);
-		PositMatrix[] matrices = camera.getCalibrationMatrices();
-		synchronized (matrices) {
-			matrices[0] = null;
-			matrices[1] = null;
-		}
 	}
 
 	// maximal time difference, in milliseconds, in which to take a marker
