@@ -139,12 +139,15 @@ public class CameraManager {
 		cameraTransform.setRotation(camera.getOrientation());
 		Vector3 point = new Vector3(posit.getTranslation());
 		cameraTransform.applyForward(point);
+		Matrix3 playerRotation = new Matrix3();
+		cameraTransform.getMatrix().multiply(posit.getRotation(), playerRotation);
 		ReadOnlyVector2 playerPosition = new Vector2(point.getX(), point.getZ());
 		MarkerInfo detectedPosition = new MarkerInfo(playerPosition, new Date());
 		camera.addMarkerHistory(player, detectedPosition);
 		camera.printPlayerMarkerHistory(player);
 		player.setX(playerPosition.getX());
 		player.setY(playerPosition.getY());
+		player.setAngle(playerRotation.toAngles(null)[1]);
 		player.setLastUpdated(new Date());
 	}
 

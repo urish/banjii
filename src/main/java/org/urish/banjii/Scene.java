@@ -176,7 +176,10 @@ public class Scene extends ExampleBase {
 					translation.setX(player.getX() - 2.5);
 					translation.setY(player.getHeight() * 0.6 - 0.6);
 					translation.setZ(player.getY() - 2.5);
+					Matrix3 rotationMatrix = new Matrix3();
+					rotationMatrix.fromAngles(0, player.getAngle(), 0);
 					playerObject.setTranslation(translation);
+					playerObject.setRotation(rotationMatrix);
 					playerObject.acceptVisitor(new UpdateModelBoundVisitor(), false);
 				}
 			});

@@ -10,6 +10,7 @@ public class Player {
 	private double x;
 	private double y;
 	private double height;
+	private double angle;
 	private Date lastUpdated;
 	private boolean wasActive;
 
@@ -73,7 +74,17 @@ public class Player {
 			broadcastUpdate();
 		}
 	}
+	
+	public double getAngle() {
+		return angle;
+	}
 
+	public void setAngle(double angle) {
+		if (this.angle != angle) {
+			this.angle = angle;
+			broadcastUpdate();
+		}
+	}
 	public Date getLastUpdated() {
 		return lastUpdated;
 	}
