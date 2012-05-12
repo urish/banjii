@@ -1,7 +1,6 @@
 package org.urish.banjii.model;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,20 +15,20 @@ import com.ardor3d.math.Matrix3;
 import com.ardor3d.math.Transform;
 import com.ardor3d.math.Vector2;
 import com.ardor3d.math.Vector3;
+import com.ardor3d.math.type.ReadOnlyMatrix3;
 import com.ardor3d.math.type.ReadOnlyVector2;
 import com.ardor3d.math.type.ReadOnlyVector3;
 
 public class CameraManager {
 	public static final CameraManager instance = new CameraManager();
 
-	private static final Logger logger = Logger.getLogger(CameraManager.class
-			.getName());
+	private static final Logger logger = Logger.getLogger(CameraManager.class.getName());
 	private static final int MAX_CAMERAS = 4;
 	private static final double CALIBRATION_MARKER_DISTANCE = 0.16; /* Meters */
 
 	private final PlayerManager playerManager = PlayerManager.instance;
 	private final List<Camera> cameras = new ArrayList<Camera>();
-	private final static String CAMERA_PROPERTIES_FILE_PATH = "c:\banjii.camera.properties";
+	private final static String CAMERA_PROPERTIES_FILE_PATH = "camera.properties";
 
 	private Properties cameraProperties;
 
@@ -39,23 +38,18 @@ public class CameraManager {
 		try {
 			cameraProperties.load(new FileInputStream(CAMERA_PROPERTIES_FILE_PATH));
 		} catch (IOException e) {
-			System.out.println("Could not load camera properties file at: "
-					+ CAMERA_PROPERTIES_FILE_PATH);
+			System.out.println("Could not load camera properties file at: " + CAMERA_PROPERTIES_FILE_PATH);
 		}
 		for (int i = 0; i < MAX_CAMERAS; i++) {
 			Camera camera = new Camera(i);
-			Vector3 cameraPosition = stringToVector(cameraProperties
-					.getProperty("camera" + i + "position", "0,0,0"));
-			camera.setPosition(cameraPosition);
-			camera.setPosition(new Vector3(0, 1, 2.5));
-			camera.setOrientation(new Matrix3(0, 0, 1, 0, 1, 0, 1, 0, 0));
+			Vector3 savedPosition = stringToVector(cameraProperties.getProperty("camera" + i + ".position", "0,0,0"));
+			Matrix3 savedOrientation = stringToMatrix(cameraProperties.getProperty("camera" + i + ".orientation",
+					"0,0,1,0,1,0,1,0,0"));
+			camera.setPosition(savedPosition);
+			camera.setOrientation(savedOrientation);
 			camera.setScale(1 / 200.);
 			cameras.add(camera);
 		}
-		cameras.get(1).setPosition(new Vector3(5, 1, 2.5));
-		cameras.get(1).setOrientation(new Matrix3(0, 0, -1, 0, 1, 0, -1, 0, 0));
-		cameras.get(2).setPosition(new Vector3(2.5, 1, 0));
-		cameras.get(2).setOrientation(new Matrix3(1, 0, 0, 0, 1, 0, 0, 0, 1));
 	}
 
 	private Vector3 stringToVector(String vectorString) {
@@ -68,39 +62,44 @@ public class CameraManager {
 		return vector;
 	}
 
-	private String vectorToString(Vector3 vector) {
+	private Matrix3 stringToMatrix(String matrixData) {
+		String[] parts = matrixData.split(",");
+		return new Matrix3(Double.valueOf(parts[0]), Double.valueOf(parts[1]), Double.valueOf(parts[2]),
+				Double.valueOf(parts[3]), Double.valueOf(parts[4]), Double.valueOf(parts[5]), Double.valueOf(parts[6]),
+				Double.valueOf(parts[7]), Double.valueOf(parts[8]));
+	}
+
+	private String vectorToString(ReadOnlyVector3 vector) {
 		StringBuffer vectorString = new StringBuffer();
-		vectorString.append(vector.getX() + "," + vector.getY() + ","
-				+ vector.getZ());
+		vectorString.append(vector.getX() + "," + vector.getY() + "," + vector.getZ());
 
 		return vectorString.toString();
+	}
+
+	private String matrixToString(ReadOnlyMatrix3 matrix) {
+		double[] values = matrix.toArray(null);
+		return values[0] + "," + values[1] + "," + values[2] + "," + values[3] + "," + values[4] + "," + values[5] + ","
+				+ values[6] + "," + values[7] + "," + values[8];
 	}
 
 	/**
 	 * the scale of the sliders runs between [0...100]
 	 * 
 	 * @param camera
-	 * @param input
+	 * @param newPosition
+	 * @param orientationMatrix
 	 */
-	public void updateCameraPosition(Camera camera, Vector3 input) {
-		double lengthProportion = 100 / RealWorldParameters.ROOM_LENGTH;
-		double widthProportion = 100 / RealWorldParameters.ROOM_WIDTH;
-		double heightProportion = 100 / RealWorldParameters.ROOM_HEIGHT;
+	public void updateCameraPosition(Camera camera, Vector3 newPosition, Matrix3 orientationMatrix) {
+		camera.setPosition(newPosition);
+		camera.setOrientation(orientationMatrix);
 
-		Vector3 position = new Vector3();
-		position.setX(input.getX() * widthProportion);
-		position.setY(input.getY() * heightProportion);
-		position.setZ(input.getZ() * lengthProportion);
-
-		cameraProperties.setProperty("camera"+camera.getId()+"position", vectorToString(position));
+		cameraProperties.setProperty("camera" + camera.getId() + ".position", vectorToString(camera.getPosition()));
+		cameraProperties.setProperty("camera" + camera.getId() + ".orientation", matrixToString(camera.getOrientation()));
 		try {
-			cameraProperties.save(new FileOutputStream(CAMERA_PROPERTIES_FILE_PATH), null);
-		} catch (FileNotFoundException e) {
-			System.out.println("Could not save camera properties file at: "
-					+ CAMERA_PROPERTIES_FILE_PATH);
+			cameraProperties.store(new FileOutputStream(CAMERA_PROPERTIES_FILE_PATH), null);
+		} catch (IOException e) {
+			System.out.println("Could not save camera properties file at: " + CAMERA_PROPERTIES_FILE_PATH);
 		}
-		camera.setPosition(position);
-
 	}
 
 	/**
@@ -114,8 +113,7 @@ public class CameraManager {
 	}
 
 	public void updateCameraConnection(int cameraId) {
-		logger.info("Camera " + cameraId
-				+ " found no markers but is still connected");
+		logger.info("Camera " + cameraId + " found no markers but is still connected");
 		Camera camera = cameras.get(cameraId);
 		if (camera != null) {
 			camera.setLastConnectedTime(new Date().getTime());
@@ -124,8 +122,7 @@ public class CameraManager {
 
 	public void onMarkerMovement(int cameraId, int markerId, double[] matrix) {
 		PositMatrix posit = PositMatrix.load(matrix);
-		logger.info("Camera " + cameraId + " detected marker " + markerId
-				+ " at " + posit);
+		logger.info("Camera " + cameraId + " detected marker " + markerId + " at " + posit);
 		Camera camera = cameras.get(cameraId);
 		Player player = playerManager.getPlayers().get(markerId);
 
@@ -150,14 +147,12 @@ public class CameraManager {
 			}
 			if (matrices[0] != null && (matrices[1] != null)) {
 				marker1Position = new Vector3(matrices[0].getTranslation());
-				distance = matrices[0].getTranslation().distance(
-						matrices[1].getTranslation());
+				distance = matrices[0].getTranslation().distance(matrices[1].getTranslation());
 			}
 		}
 		if (marker1Position != null) {
 			double scale = CALIBRATION_MARKER_DISTANCE / distance;
-			logger.info("Camera calibrated, distance scale: " + scale
-					+ ", position: " + marker1Position);
+			logger.info("Camera calibrated, distance scale: " + scale + ", position: " + marker1Position);
 			Vector3 cameraPosition = new Vector3(marker1Position);
 			cameraPosition.multiplyLocal(scale);
 			cameraPosition.addLocal(new Vector3(2.5, 2, 2.5));
@@ -229,8 +224,7 @@ public class CameraManager {
 			if (markerInfoQueue != null) {
 				// calculate the camera's weight - based on the "freshness" of
 				// its marker timestamp and other data
-				singleCameraWeight = calculateCameraWeight(
-						markerInfoQueue.peek(), currentTime);
+				singleCameraWeight = calculateCameraWeight(markerInfoQueue.peek(), currentTime);
 
 				Iterator<MarkerInfo> it = markerInfoQueue.iterator();
 				double accumulatingX = 0;
@@ -240,14 +234,11 @@ public class CameraManager {
 					MarkerInfo iteratorValue = it.next();
 					// work only with marker info instances which are "fresh"
 					// enough
-					double timeDiff = currentTime
-							- iteratorValue.getTimestamp().getTime();
+					double timeDiff = currentTime - iteratorValue.getTimestamp().getTime();
 					if (timeDiff < MAXIMAL_TIME_DIFF) {
 						double weight = MAXIMAL_TIME_DIFF - timeDiff;
-						accumulatingX += iteratorValue.getPosition().getX()
-								* weight;
-						accumulatingY += iteratorValue.getPosition().getY()
-								* weight;
+						accumulatingX += iteratorValue.getPosition().getX() * weight;
+						accumulatingY += iteratorValue.getPosition().getY() * weight;
 						weightCounter += weight;
 					} else {
 						// if we passed the allowed time difference, we don't
@@ -259,41 +250,29 @@ public class CameraManager {
 				singleCameraWeightedAvgX = accumulatingX / weightCounter;
 				singleCameraWeightedAvgY = accumulatingY / weightCounter;
 
-				System.out.println("weighted X for camera " + camera.getId()
-						+ "= " + singleCameraWeightedAvgX);
-				System.out.println("weighted Y for camera " + camera.getId()
-						+ "= " + singleCameraWeightedAvgY);
-				System.out
-						.println("====================================================");
+				System.out.println("weighted X for camera " + camera.getId() + "= " + singleCameraWeightedAvgX);
+				System.out.println("weighted Y for camera " + camera.getId() + "= " + singleCameraWeightedAvgY);
+				System.out.println("====================================================");
 			}
 
-			allCamerasAccumulatingX += singleCameraWeightedAvgX
-					* singleCameraWeight;
-			allCamerasAccumulatingY += singleCameraWeightedAvgY
-					* singleCameraWeight;
+			allCamerasAccumulatingX += singleCameraWeightedAvgX * singleCameraWeight;
+			allCamerasAccumulatingY += singleCameraWeightedAvgY * singleCameraWeight;
 			allCamerasWeight += singleCameraWeight;
 		}
 
-		double allCamerasWeightedAvgX = allCamerasAccumulatingX
-				/ allCamerasWeight;
-		double allCamerasWeightedAvgY = allCamerasAccumulatingY
-				/ allCamerasWeight;
+		double allCamerasWeightedAvgX = allCamerasAccumulatingX / allCamerasWeight;
+		double allCamerasWeightedAvgY = allCamerasAccumulatingY / allCamerasWeight;
 
-		System.out.println("weighted X from ALL cameras = "
-				+ allCamerasWeightedAvgX);
-		System.out.println("weighted Y from ALL cameras = "
-				+ allCamerasWeightedAvgY);
-		System.out
-				.println("====================================================");
+		System.out.println("weighted X from ALL cameras = " + allCamerasWeightedAvgX);
+		System.out.println("weighted Y from ALL cameras = " + allCamerasWeightedAvgY);
+		System.out.println("====================================================");
 
-		ReadOnlyVector2 weightedPlayerPosition = new Vector2(
-				allCamerasWeightedAvgX, allCamerasWeightedAvgY);
+		ReadOnlyVector2 weightedPlayerPosition = new Vector2(allCamerasWeightedAvgX, allCamerasWeightedAvgY);
 
 		return weightedPlayerPosition;
 	}
 
-	private double calculateCameraWeight(MarkerInfo freshestMarker,
-			long currentTime) {
+	private double calculateCameraWeight(MarkerInfo freshestMarker, long currentTime) {
 		double timeDiff = currentTime - freshestMarker.getTimestamp().getTime();
 		double weight = MAXIMAL_TIME_DIFF - timeDiff;
 		return weight;
