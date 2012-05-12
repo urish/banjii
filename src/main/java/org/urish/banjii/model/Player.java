@@ -9,6 +9,7 @@ public class Player {
 	private boolean visible;
 	private double x;
 	private double y;
+	private double height;
 	private Date lastUpdated;
 	private boolean wasActive;
 
@@ -18,6 +19,7 @@ public class Player {
 		super();
 		this.id = id;
 		this.visible = true;
+		this.height = 1;
 	}
 
 	public int getId() {
@@ -57,6 +59,17 @@ public class Player {
 	public void setY(double y) {
 		if (this.y != y) {
 			this.y = y;
+			broadcastUpdate();
+		}
+	}
+
+	public double getHeight() {
+		return height;
+	}
+
+	public void setHeight(double height) {
+		if (this.height != height) {
+			this.height = height;
 			broadcastUpdate();
 		}
 	}

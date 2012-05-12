@@ -26,7 +26,7 @@ public class PlayerControl {
 	public void registerTriggers(LogicalLayer layer) {
 		// WASD control
 		final Predicate<TwoInputStates> keysHeld = new Predicate<TwoInputStates>() {
-			Key[] keys = new Key[] { Key.LEFT, Key.RIGHT, Key.UP, Key.DOWN };
+			Key[] keys = new Key[] { Key.LEFT, Key.RIGHT, Key.UP, Key.DOWN, Key.PAGEUP_PRIOR, Key.PAGEDOWN_NEXT };
 
 			public boolean apply(final TwoInputStates states) {
 				for (final Key k : keys) {
@@ -61,6 +61,7 @@ public class PlayerControl {
 	protected void move(final KeyboardState keyboardState) {
 		double x = player.getX();
 		double y = player.getY();
+		double height = player.getHeight();
 		if (keyboardState.isDown(Key.UP)) {
 			x -= .01;
 		}
@@ -73,10 +74,17 @@ public class PlayerControl {
 		if (keyboardState.isDown(Key.RIGHT)) {
 			y -= .01;
 		}
+		if (keyboardState.isDown(Key.PAGEUP_PRIOR)) {
+			height += .01;
+		}
+		if (keyboardState.isDown(Key.PAGEDOWN_NEXT)) {
+			height -= .01;
+		}
 		x = limit(x, 0, 5);
 		y = limit(y, 0, 5);
+		height = limit(height, 0, 1);
 		player.setX(x);
 		player.setY(y);
+		player.setHeight(height);
 	}
-
 }
