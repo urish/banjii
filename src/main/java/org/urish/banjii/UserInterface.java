@@ -139,8 +139,9 @@ public class UserInterface {
 			final UIButton calibrateButton = new UIButton("Calibrate");
 			calibrateButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent event) {
-					calibrationCamera = camera;
+					calibrationCamera = null;
 					loadCameraCalibration(camera);
+					calibrationCamera = camera;
 					hud.add(calibrationFrame);
 				}
 			});
@@ -277,28 +278,30 @@ public class UserInterface {
 
 		double[] angles = camera.getOrientation().toAngles(null);
 		double fromRadians = 180. / Math.PI;
-		sliderXOrientation.setValue((int) (angles[0] * fromRadians));
-		sliderYOrientation.setValue((int) (angles[1] * fromRadians));
-		sliderZOrientation.setValue((int) (angles[2] * fromRadians));
+		sliderXOrientation.setValue(((int) (angles[0] * fromRadians) + 360) % 360);
+		sliderYOrientation.setValue(((int) (angles[1] * fromRadians) + 360) % 360);
+		sliderZOrientation.setValue(((int) (angles[2] * fromRadians) + 360) % 360);
 	}
 
 	private class CameraParametersListener implements ActionListener {
 		public void actionPerformed(ActionEvent event) {
-			Vector3 positionValues = new Vector3();
+			if (calibrationCamera != null) {
+				Vector3 positionValues = new Vector3();
 
-			double lengthProportion = RealWorldParameters.ROOM_LENGTH / 100.;
-			double widthProportion = RealWorldParameters.ROOM_WIDTH / 100.;
-			double heightProportion = RealWorldParameters.ROOM_HEIGHT / 100.;
-			positionValues.setX(sliderXPosition.getValue() * lengthProportion);
-			positionValues.setY(sliderYPosition.getValue() * heightProportion);
-			positionValues.setZ(sliderZPosition.getValue() * widthProportion);
+				double lengthProportion = RealWorldParameters.ROOM_LENGTH / 100.;
+				double widthProportion = RealWorldParameters.ROOM_WIDTH / 100.;
+				double heightProportion = RealWorldParameters.ROOM_HEIGHT / 100.;
+				positionValues.setX(sliderXPosition.getValue() * lengthProportion);
+				positionValues.setY(sliderYPosition.getValue() * heightProportion);
+				positionValues.setZ(sliderZPosition.getValue() * widthProportion);
 
-			Matrix3 orientationMatrix = new Matrix3();
-			double toRadians = Math.PI / 180.;
-			orientationMatrix.fromAngles(sliderXOrientation.getValue() * toRadians, sliderYOrientation.getValue() * toRadians,
-					sliderZOrientation.getValue() * toRadians);
+				Matrix3 orientationMatrix = new Matrix3();
+				double toRadians = Math.PI / 180.;
+				orientationMatrix.fromAngles(sliderXOrientation.getValue() * toRadians,
+						sliderYOrientation.getValue() * toRadians, sliderZOrientation.getValue() * toRadians);
 
-			cameraManager.updateCameraPosition(calibrationCamera, positionValues, orientationMatrix);
+				cameraManager.updateCameraParameters(calibrationCamera, positionValues, orientationMatrix);
+			}
 		}
 	}
 }

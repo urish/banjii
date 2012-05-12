@@ -97,7 +97,7 @@ public class Camera {
 
 	public void setPosition(ReadOnlyVector3 position) {
 		if (!this.position.equals(position)) {
-			this.position = position;
+			this.position = new Vector3(position);
 			broadcastUpdate();
 		}
 	}
@@ -108,7 +108,7 @@ public class Camera {
 
 	public void setOrientation(ReadOnlyMatrix3 orientation) {
 		if (!this.orientation.equals(orientation)) {
-			this.orientation = orientation;
+			this.orientation = new Matrix3(orientation);
 			broadcastUpdate();
 		}
 	}

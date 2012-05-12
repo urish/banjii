@@ -89,7 +89,7 @@ public class CameraManager {
 	 * @param newPosition
 	 * @param orientationMatrix
 	 */
-	public void updateCameraPosition(Camera camera, Vector3 newPosition, Matrix3 orientationMatrix) {
+	public void updateCameraParameters(Camera camera, Vector3 newPosition, Matrix3 orientationMatrix) {
 		camera.setPosition(newPosition);
 		camera.setOrientation(orientationMatrix);
 
