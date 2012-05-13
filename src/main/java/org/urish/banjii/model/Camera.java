@@ -20,6 +20,7 @@ public class Camera {
 	private final Map<Player, Queue<MarkerInfo>> history = new HashMap<Player, Queue<MarkerInfo>>(4); // a map of each player to his position history as captured by this camera
 	private final Set<CameraListener> listeners = new HashSet<CameraListener>();
 
+	private boolean muted = false;
 	private boolean wasActive;
 	private boolean wasConnected;
 
@@ -45,7 +46,7 @@ public class Camera {
 	}
 
 	public boolean isConnected() {
-		return isActive() || (new Date().getTime() - getLastConnectedTime()) < 1000;
+		return !isMuted() && isActive() || (new Date().getTime() - getLastConnectedTime()) < 1000;
 	}
 
 	public double getScale() {
@@ -197,6 +198,14 @@ public class Camera {
 	@Override
 	public int hashCode() {
 		return 13 * id;
+	}
+
+	public boolean isMuted() {
+		return muted;
+	}
+
+	public void setMuted(boolean muted) {
+		this.muted = muted;
 	}
 
 }

@@ -22,6 +22,7 @@ import com.ardor3d.extension.ui.UIHud;
 import com.ardor3d.extension.ui.UILabel;
 import com.ardor3d.extension.ui.UIPanel;
 import com.ardor3d.extension.ui.UISlider;
+import com.ardor3d.extension.ui.UIState;
 import com.ardor3d.extension.ui.UITabbedPane;
 import com.ardor3d.extension.ui.UITabbedPane.TabPlacement;
 import com.ardor3d.extension.ui.event.ActionEvent;
@@ -41,7 +42,8 @@ import com.ardor3d.renderer.Renderer;
 import com.ardor3d.util.ReadOnlyTimer;
 
 public class UserInterface {
-	private static final ReadOnlyColorRGBA DARK_GREEN = new ColorRGBA(0f, .6f, 0f, 1f);
+	private static final ReadOnlyColorRGBA DARK_GREEN = new ColorRGBA(0f, .6f,
+			0f, 1f);
 
 	private final Canvas canvas;
 	private final PhysicalLayer physicalLayer;
@@ -68,7 +70,8 @@ public class UserInterface {
 
 	private UIFrame calibrationFrame;
 
-	public UserInterface(Canvas canvas, PhysicalLayer physicalLayer, LogicalLayer logicalLayer) {
+	public UserInterface(Canvas canvas, PhysicalLayer physicalLayer,
+			LogicalLayer logicalLayer) {
 		super();
 		this.canvas = canvas;
 		this.physicalLayer = physicalLayer;
@@ -90,7 +93,8 @@ public class UserInterface {
 
 		frame.setUseStandin(true);
 		frame.setOpacity(1f);
-		frame.setHudXY(5, canvas.getCanvasRenderer().getCamera().getHeight() - frame.getLocalComponentHeight() - 5);
+		frame.setHudXY(5, canvas.getCanvasRenderer().getCamera().getHeight()
+				- frame.getLocalComponentHeight() - 5);
 		frame.setName("UI");
 
 		hud = new UIHud();
@@ -146,9 +150,22 @@ public class UserInterface {
 				}
 			});
 
+			final UICheckBox muteCheckbox = new UICheckBox("Mute");
+			muteCheckbox.addActionListener(new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent event) {
+
+					camera.setMuted(muteCheckbox.isSelected());
+					activeLabel.setText("MUTE");
+					activeLabel.setForegroundColor(ColorRGBA.ORANGE);
+				}
+			});
+			camerasPanel.add(muteCheckbox);
 			camerasPanel.add(cameraLabel);
 			camerasPanel.add(activeLabel);
 			camerasPanel.add(calibrateButton);
+
 			calibrateButton.setLayoutData(GridLayoutData.WrapAndGrow);
 
 			camera.addListener(new CameraListener() {
@@ -160,15 +177,17 @@ public class UserInterface {
 			});
 			cameraListeners.put(camera, new CameraListener() {
 				public void onCameraUpdate(Camera camera) {
-					if (camera.isActive()) {
-						activeLabel.setText("ACT");
-						activeLabel.setForegroundColor(ColorRGBA.BLUE);
-					} else if (camera.isConnected()) {
-						activeLabel.setText("ON");
-						activeLabel.setForegroundColor(DARK_GREEN);
-					} else {
-						activeLabel.setText("off");
-						activeLabel.setForegroundColor(ColorRGBA.RED);
+					if (!camera.isMuted()) {
+						if (camera.isConnected()) {
+							activeLabel.setText("ON");
+							activeLabel.setForegroundColor(DARK_GREEN);
+						} else if (camera.isActive()) {
+							activeLabel.setText("ACT");
+							activeLabel.setForegroundColor(ColorRGBA.BLUE);
+						} else {
+							activeLabel.setText("off");
+							activeLabel.setForegroundColor(ColorRGBA.RED);
+						}
 					}
 				}
 			});
@@ -235,8 +254,11 @@ public class UserInterface {
 
 		calibrationFrame.setUseStandin(true);
 		calibrationFrame.setOpacity(1f);
-		calibrationFrame.setHudXY(canvas.getCanvasRenderer().getCamera().getWidth() - calibrationFrame.getLocalComponentWidth()
-				- 5, canvas.getCanvasRenderer().getCamera().getHeight() - calibrationFrame.getLocalComponentHeight() - 5);
+		calibrationFrame.setHudXY(canvas.getCanvasRenderer().getCamera()
+				.getWidth()
+				- calibrationFrame.getLocalComponentWidth() - 5, canvas
+				.getCanvasRenderer().getCamera().getHeight()
+				- calibrationFrame.getLocalComponentHeight() - 5);
 		calibrationFrame.setName("Calibration");
 	}
 
@@ -272,15 +294,21 @@ public class UserInterface {
 
 	private void loadCameraCalibration(Camera camera) {
 		ReadOnlyVector3 position = camera.getPosition();
-		sliderXPosition.setValue((int) (position.getX() * 100 / RealWorldParameters.ROOM_LENGTH));
-		sliderYPosition.setValue((int) (position.getY() * 100 / RealWorldParameters.ROOM_HEIGHT));
-		sliderZPosition.setValue((int) (position.getZ() * 100 / RealWorldParameters.ROOM_WIDTH));
+		sliderXPosition
+				.setValue((int) (position.getX() * 100 / RealWorldParameters.ROOM_LENGTH));
+		sliderYPosition
+				.setValue((int) (position.getY() * 100 / RealWorldParameters.ROOM_HEIGHT));
+		sliderZPosition
+				.setValue((int) (position.getZ() * 100 / RealWorldParameters.ROOM_WIDTH));
 
 		double[] angles = camera.getOrientation().toAngles(null);
 		double fromRadians = 180. / Math.PI;
-		sliderXOrientation.setValue(((int) (angles[0] * fromRadians) + 360) % 360);
-		sliderYOrientation.setValue(((int) (angles[1] * fromRadians) + 360) % 360);
-		sliderZOrientation.setValue(((int) (angles[2] * fromRadians) + 360) % 360);
+		sliderXOrientation
+				.setValue(((int) (angles[0] * fromRadians) + 360) % 360);
+		sliderYOrientation
+				.setValue(((int) (angles[1] * fromRadians) + 360) % 360);
+		sliderZOrientation
+				.setValue(((int) (angles[2] * fromRadians) + 360) % 360);
 	}
 
 	private class CameraParametersListener implements ActionListener {
@@ -291,16 +319,21 @@ public class UserInterface {
 				double lengthProportion = RealWorldParameters.ROOM_LENGTH / 100.;
 				double widthProportion = RealWorldParameters.ROOM_WIDTH / 100.;
 				double heightProportion = RealWorldParameters.ROOM_HEIGHT / 100.;
-				positionValues.setX(sliderXPosition.getValue() * lengthProportion);
-				positionValues.setY(sliderYPosition.getValue() * heightProportion);
-				positionValues.setZ(sliderZPosition.getValue() * widthProportion);
+				positionValues.setX(sliderXPosition.getValue()
+						* lengthProportion);
+				positionValues.setY(sliderYPosition.getValue()
+						* heightProportion);
+				positionValues.setZ(sliderZPosition.getValue()
+						* widthProportion);
 
 				Matrix3 orientationMatrix = new Matrix3();
 				double toRadians = Math.PI / 180.;
-				orientationMatrix.fromAngles(sliderXOrientation.getValue() * toRadians,
-						sliderYOrientation.getValue() * toRadians, sliderZOrientation.getValue() * toRadians);
+				orientationMatrix.fromAngles(sliderXOrientation.getValue()
+						* toRadians, sliderYOrientation.getValue() * toRadians,
+						sliderZOrientation.getValue() * toRadians);
 
-				cameraManager.updateCameraParameters(calibrationCamera, positionValues, orientationMatrix);
+				cameraManager.updateCameraParameters(calibrationCamera,
+						positionValues, orientationMatrix);
 			}
 		}
 	}
