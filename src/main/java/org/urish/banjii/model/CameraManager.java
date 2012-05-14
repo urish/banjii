@@ -30,7 +30,7 @@ public class CameraManager {
 	private final static String CAMERA_PROPERTIES_FILE_PATH = "camera.properties";
 
 	private final static float CAMERA_TO_METERS = 1 / 300f;
-	private final static ReadOnlyVector3 ROOM_SIZE = new Vector3(4.30f, 2.20f, 3.30f);
+	private final static ReadOnlyVector3 ROOM_SIZE = new Vector3(4.30f, 2.20f, 2.820f);
 
 	private Properties cameraProperties;
 
@@ -126,7 +126,7 @@ public class CameraManager {
 		PositMatrix posit = PositMatrix.load(matrix);
 		logger.info("Camera " + cameraId + " detected marker " + markerId + " at " + posit.getTranslation());
 		Camera camera = cameras.get(cameraId);
-		Player player = playerManager.getPlayers().get(markerId);
+		Player player = playerManager.getPlayers().get(markerId >> 1);
 
 		if (camera != null) {
 			camera.setLastActiveTime(new Date().getTime());
