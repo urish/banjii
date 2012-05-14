@@ -125,11 +125,12 @@ public class CameraManager {
 		Camera camera = cameras.get(cameraId);
 		Player player = playerManager.getPlayers().get(markerId);
 
-		if (camera != null && !camera.isMuted()) {
+		if (camera != null) {
 			camera.setLastActiveTime(new Date().getTime());
-			updateCamera(camera, player, posit);
+			if (!camera.isMuted()) {
+				updateCamera(camera, player, posit);
+			}
 		}
-
 	}
 
 	private void updateCamera(Camera camera, Player player, PositMatrix posit) {
