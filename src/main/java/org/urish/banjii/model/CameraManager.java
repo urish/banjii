@@ -29,6 +29,9 @@ public class CameraManager {
 	private final List<Camera> cameras = new ArrayList<Camera>();
 	private final static String CAMERA_PROPERTIES_FILE_PATH = "camera.properties";
 
+	private final static float CAMERA_TO_METERS = 1 / 300f;
+	private final static ReadOnlyVector3 ROOM_SIZE = new Vector3(4.30f, 2.20f, 3.30f);
+
 	private Properties cameraProperties;
 
 	private CameraManager() {
@@ -46,7 +49,6 @@ public class CameraManager {
 					"0,0,1,0,1,0,1,0,0"));
 			camera.setPosition(savedPosition);
 			camera.setOrientation(savedOrientation);
-			camera.setScale(1 / 200.);
 			cameras.add(camera);
 		}
 	}
@@ -112,7 +114,8 @@ public class CameraManager {
 	}
 
 	public void updateCameraConnection(int cameraId) {
-		logger.info("Camera " + cameraId + " found no markers but is still connected");
+		// logger.info("Camera " + cameraId +
+		// " found no markers but is still connected");
 		Camera camera = cameras.get(cameraId);
 		if (camera != null) {
 			camera.setLastConnectedTime(new Date().getTime());
@@ -121,7 +124,7 @@ public class CameraManager {
 
 	public void onMarkerMovement(int cameraId, int markerId, double[] matrix) {
 		PositMatrix posit = PositMatrix.load(matrix);
-		logger.info("Camera " + cameraId + " detected marker " + markerId + " at " + posit);
+		logger.info("Camera " + cameraId + " detected marker " + markerId + " at " + posit.getTranslation());
 		Camera camera = cameras.get(cameraId);
 		Player player = playerManager.getPlayers().get(markerId);
 
@@ -135,7 +138,10 @@ public class CameraManager {
 
 	private void updateCamera(Camera camera, Player player, PositMatrix posit) {
 		Transform cameraTransform = new Transform();
-		cameraTransform.setScale(camera.getScale());
+		Vector3 cameraScale = new Vector3(RealWorldParameters.ROOM_LENGTH / ROOM_SIZE.getX(),
+		RealWorldParameters.ROOM_HEIGHT / ROOM_SIZE.getY(), RealWorldParameters.ROOM_WIDTH / ROOM_SIZE.getZ());
+		cameraScale.multiplyLocal(CAMERA_TO_METERS);
+		cameraTransform.setScale(cameraScale);
 		cameraTransform.setTranslation(camera.getPosition());
 		cameraTransform.setRotation(camera.getOrientation());
 		Vector3 point = new Vector3(posit.getTranslation());
@@ -145,7 +151,7 @@ public class CameraManager {
 		ReadOnlyVector2 playerPosition = new Vector2(point.getX(), point.getZ());
 		MarkerInfo detectedPosition = new MarkerInfo(playerPosition, new Date());
 		camera.addMarkerHistory(player, detectedPosition);
-		camera.printPlayerMarkerHistory(player);
+//		camera.printPlayerMarkerHistory(player);
 		player.setX(playerPosition.getX());
 		player.setY(playerPosition.getY());
 		player.setAngle(playerRotation.toAngles(null)[1]);

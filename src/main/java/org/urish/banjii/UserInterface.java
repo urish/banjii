@@ -286,9 +286,9 @@ public class UserInterface {
 
 	private void loadCameraCalibration(Camera camera) {
 		ReadOnlyVector3 position = camera.getPosition();
-		sliderXPosition.setValue((int) (position.getX() * 100 / RealWorldParameters.ROOM_LENGTH));
+		sliderXPosition.setValue((int) ((2+position.getX()) * 50 / RealWorldParameters.ROOM_LENGTH));
 		sliderYPosition.setValue((int) (position.getY() * 100 / RealWorldParameters.ROOM_HEIGHT));
-		sliderZPosition.setValue((int) (position.getZ() * 100 / RealWorldParameters.ROOM_WIDTH));
+		sliderZPosition.setValue((int) ((2+position.getZ()) * 50 / RealWorldParameters.ROOM_WIDTH));
 
 		double[] angles = camera.getOrientation().toAngles(null);
 		double fromRadians = 180. / Math.PI;
@@ -302,12 +302,12 @@ public class UserInterface {
 			if (calibrationCamera != null) {
 				Vector3 positionValues = new Vector3();
 
-				double lengthProportion = RealWorldParameters.ROOM_LENGTH / 100.;
-				double widthProportion = RealWorldParameters.ROOM_WIDTH / 100.;
+				double lengthProportion = RealWorldParameters.ROOM_LENGTH / 50.;
+				double widthProportion = RealWorldParameters.ROOM_WIDTH / 50.;
 				double heightProportion = RealWorldParameters.ROOM_HEIGHT / 100.;
-				positionValues.setX(sliderXPosition.getValue() * lengthProportion);
+				positionValues.setX(sliderXPosition.getValue() * lengthProportion - 2);
 				positionValues.setY(sliderYPosition.getValue() * heightProportion);
-				positionValues.setZ(sliderZPosition.getValue() * widthProportion);
+				positionValues.setZ(sliderZPosition.getValue() * widthProportion - 2);
 
 				Matrix3 orientationMatrix = new Matrix3();
 				double toRadians = Math.PI / 180.;
