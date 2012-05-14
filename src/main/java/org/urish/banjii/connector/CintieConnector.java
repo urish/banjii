@@ -61,7 +61,7 @@ public class CintieConnector implements PlayerListener, Runnable {
 			for (Player playerToUpdate : changedPlayers) {
 				updateUrl = "/app/pawns/" + (playerToUpdate.getId() + 1);
 				updateContent = "x=" + (playerToUpdate.getX() / 5) + "&y=" + (playerToUpdate.getY() / 5) + "&on="
-						+ playerToUpdate.isVisible();
+						+ (playerToUpdate.isVisible() && playerToUpdate.isPlaying());
 				try {
 					URLConnection connection = new URL(cintieServer + updateUrl).openConnection();
 					connection.setDoOutput(true);

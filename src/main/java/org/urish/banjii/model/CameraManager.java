@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Queue;
@@ -138,8 +139,8 @@ public class CameraManager {
 
 	private void updateCamera(Camera camera, Player player, PositMatrix posit) {
 		Transform cameraTransform = new Transform();
-		Vector3 cameraScale = new Vector3(RealWorldParameters.ROOM_LENGTH / ROOM_SIZE.getX(),
-		RealWorldParameters.ROOM_HEIGHT / ROOM_SIZE.getY(), RealWorldParameters.ROOM_WIDTH / ROOM_SIZE.getZ());
+		Vector3 cameraScale = new Vector3(RealWorldParameters.ROOM_LENGTH / ROOM_SIZE.getX(), RealWorldParameters.ROOM_HEIGHT
+				/ ROOM_SIZE.getY(), RealWorldParameters.ROOM_WIDTH / ROOM_SIZE.getZ());
 		cameraScale.multiplyLocal(CAMERA_TO_METERS);
 		cameraTransform.setScale(cameraScale);
 		cameraTransform.setTranslation(camera.getPosition());
@@ -151,9 +152,10 @@ public class CameraManager {
 		ReadOnlyVector2 playerPosition = new Vector2(point.getX(), point.getZ());
 		MarkerInfo detectedPosition = new MarkerInfo(playerPosition, new Date());
 		camera.addMarkerHistory(player, detectedPosition);
-//		camera.printPlayerMarkerHistory(player);
-		player.setX(playerPosition.getX());
-		player.setY(playerPosition.getY());
+		ReadOnlyVector2 weightedPosition = getWeightedAveragePosition(player);
+		// camera.printPlayerMarkerHistory(player);
+		player.setX(weightedPosition.getX());
+		player.setY(weightedPosition.getY());
 		player.setAngle(playerRotation.toAngles(null)[1]);
 		player.setLastUpdated(new Date());
 	}
@@ -191,23 +193,24 @@ public class CameraManager {
 			double singleCameraWeight = 0;
 
 			// fetch a single camera's history for a single player
-			Queue<MarkerInfo> markerInfoQueue = camera.getHistory().get(player);
-			if (markerInfoQueue != null) {
+			Queue<MarkerInfo> lifoMarkerInfoQueue = camera.getHistory().get(player);
+			if (lifoMarkerInfoQueue != null) {
+				Queue<MarkerInfo> markerInfoQueue = reverseQueue(lifoMarkerInfoQueue);
 				// calculate the camera's weight - based on the "freshness" of
 				// its marker timestamp and other data
 				singleCameraWeight = calculateCameraWeight(markerInfoQueue.peek(), currentTime);
-
+				System.out.println("Camera " + camera.getId() +" has a weight of : " + singleCameraWeight);
 				Iterator<MarkerInfo> it = markerInfoQueue.iterator();
 				double accumulatingX = 0;
 				double accumulatingY = 0;
-				double weightCounter = 0;
+				long weightCounter = 0;
 				while (it.hasNext()) {
 					MarkerInfo iteratorValue = it.next();
 					// work only with marker info instances which are "fresh"
 					// enough
-					double timeDiff = currentTime - iteratorValue.getTimestamp().getTime();
+					long timeDiff = currentTime - iteratorValue.getTimestamp().getTime();
 					if (timeDiff < MAXIMAL_TIME_DIFF) {
-						double weight = MAXIMAL_TIME_DIFF - timeDiff;
+						long weight = MAXIMAL_TIME_DIFF - timeDiff;
 						accumulatingX += iteratorValue.getPosition().getX() * weight;
 						accumulatingY += iteratorValue.getPosition().getY() * weight;
 						weightCounter += weight;
@@ -218,9 +221,11 @@ public class CameraManager {
 					}
 				}
 
-				singleCameraWeightedAvgX = accumulatingX / weightCounter;
-				singleCameraWeightedAvgY = accumulatingY / weightCounter;
-
+				if (weightCounter != 0) {
+					singleCameraWeightedAvgX = accumulatingX / weightCounter;
+					singleCameraWeightedAvgY = accumulatingY / weightCounter;
+					System.out.println("Camera "+ camera.getId() + " has a weightCounter of " + weightCounter);
+				}
 				System.out.println("weighted X for camera " + camera.getId() + "= " + singleCameraWeightedAvgX);
 				System.out.println("weighted Y for camera " + camera.getId() + "= " + singleCameraWeightedAvgY);
 				System.out.println("====================================================");
@@ -229,23 +234,41 @@ public class CameraManager {
 			allCamerasAccumulatingX += singleCameraWeightedAvgX * singleCameraWeight;
 			allCamerasAccumulatingY += singleCameraWeightedAvgY * singleCameraWeight;
 			allCamerasWeight += singleCameraWeight;
+			System.out.println("All cameras weight = " + allCamerasWeight);
 		}
 
 		double allCamerasWeightedAvgX = allCamerasAccumulatingX / allCamerasWeight;
 		double allCamerasWeightedAvgY = allCamerasAccumulatingY / allCamerasWeight;
+		System.out.println("All cameras weight = " + allCamerasWeight);
 
 		System.out.println("weighted X from ALL cameras = " + allCamerasWeightedAvgX);
 		System.out.println("weighted Y from ALL cameras = " + allCamerasWeightedAvgY);
 		System.out.println("====================================================");
 
+		if (allCamerasWeight == 0)
+			System.exit(-1);
 		ReadOnlyVector2 weightedPlayerPosition = new Vector2(allCamerasWeightedAvgX, allCamerasWeightedAvgY);
 
 		return weightedPlayerPosition;
 	}
 
+	private Queue<MarkerInfo> reverseQueue(Queue<MarkerInfo> lifoMarkerInfoQueue) {
+		Queue<MarkerInfo> fifoQueue = new LinkedList<MarkerInfo>();
+		Object[] markerInfoArr = (Object[]) lifoMarkerInfoQueue.toArray();
+		for (int i = markerInfoArr.length-1; i>0; i--)
+		{
+			fifoQueue.add((MarkerInfo)markerInfoArr[i]);
+		}
+		
+		return fifoQueue;
+	}
+
 	private double calculateCameraWeight(MarkerInfo freshestMarker, long currentTime) {
 		double timeDiff = currentTime - freshestMarker.getTimestamp().getTime();
-		double weight = MAXIMAL_TIME_DIFF - timeDiff;
+		System.out.println("Calculating camera weight");
+		System.out.println("Current time = " +currentTime);
+		System.out.println("Freshest marker time = " + freshestMarker.getTimestamp().getTime());
+		double weight = Math.max(0, MAXIMAL_TIME_DIFF - timeDiff);
 		return weight;
 	}
 }

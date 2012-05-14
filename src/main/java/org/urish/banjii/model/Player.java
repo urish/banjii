@@ -13,6 +13,7 @@ public class Player {
 	private double angle;
 	private Date lastUpdated;
 	private boolean wasActive;
+	private boolean playing;
 
 	private final Set<PlayerListener> listeners = new HashSet<PlayerListener>();
 
@@ -103,11 +104,24 @@ public class Player {
 		}
 		return (new Date().getTime() - lastUpdated.getTime()) < 500;
 	}
+	
+	public boolean isPlaying() {
+		if (lastUpdated == null) {
+			return false;
+		}
+		return (new Date().getTime() - lastUpdated.getTime()) < 5000;
+
+	}
 
 	public void update() {
 		if (isActive() != wasActive) {
 			broadcastUpdate();
 			wasActive = isActive();
+		}
+		if (isPlaying() != playing)
+		{
+			broadcastUpdate();
+			playing = isPlaying();
 		}
 	}
 
