@@ -93,7 +93,7 @@ public class Scene extends ExampleBase {
 	}
 
 	private void resetCameraPosition() {
-		_canvas.getCanvasRenderer().getCamera().setLocation(new Vector3(5, 5, 5));
+		_canvas.getCanvasRenderer().getCamera().setLocation(new Vector3(-5, 5, 5));
 		_canvas.getCanvasRenderer().getCamera().lookAt(new Vector3(0, 0, 0), Vector3.UNIT_Y);
 	}
 
